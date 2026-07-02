@@ -25,12 +25,13 @@ function Playlist({ playlistTracks, removeFromPlaylist, savePlaylist, playlistNa
     }
 
     return (
-        <div className={styles.playlist} id="playlist-section">
-            <p id='message'>{message}</p>
+        <div className={styles.playlist} id="playlist-section" data-testid="playlist-section">
+            <p id='message' data-testid="playlist-message">{message}</p>
             <input
                 aria-label="playlist-title"
                 className={styles.playlistName}
                 id="playlist-title"
+                data-testid="playlist-title-input"
                 onChange={handlePlaylistName}
                 value={playlistName}
                 type="text"
@@ -42,6 +43,7 @@ function Playlist({ playlistTracks, removeFromPlaylist, savePlaylist, playlistNa
             <button id="save-spotify-btn"
                 className={styles.Button}
                 type="button"
+                data-testid="save-playlist-button"
                 onClick={handleSubmitSavePlaylist}>Save to Spotify</button>
         </div>
     )

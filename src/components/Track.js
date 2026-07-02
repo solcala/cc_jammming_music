@@ -15,12 +15,17 @@ function Track({ track, addRemoveTrack, addToPlaylist, removeFromPlaylist }) {
   }
 
   return (
-    <div className={styles.Track}>
+    <div className={styles.Track} data-testid={`track-item-${track.id || 'unknown'}`}>
       <div>
-        <h3>{track.name}</h3>
-        <p>{track.artist}</p>
+        <h3 data-testid={`track-name-${track.id || 'unknown'}`}>{track.name}</h3>
+        <p data-testid={`track-artist-${track.id || 'unknown'}`}>{track.artist}</p>
       </div>
-      <button onClick={handleClick}>{addRemoveTrack ? '+' : '-'}</button>
+      <button
+        onClick={handleClick}
+        data-testid={addRemoveTrack ? `track-add-${track.id || 'unknown'}` : `track-remove-${track.id || 'unknown'}`}
+      >
+        {addRemoveTrack ? '+' : '-'}
+      </button>
     </div>
   )
 }
