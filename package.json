@@ -21,6 +21,10 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "test": "react-scripts test",
+    "test:e2e": "playwright test",
+    "test:api": "playwright test e2e/api",
+    "test:ui": "playwright test e2e/ui",
+    "test:e2e:ui": "playwright test --ui",
     "eject": "react-scripts eject",
     "postinstall": "patch-package"
   },
