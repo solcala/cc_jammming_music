@@ -1,6 +1,6 @@
 {
   "name": "cc_jammming_music",
-  "homepage":"https://jazcala.github.io/cc_jammming_music/",
+  "homepage": "https://jazcala.github.io/cc_jammming_music/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -59,6 +59,7 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "eslint": "^8.57.1",
     "eslint-plugin-testing-library": "^6.5.0",
     "patch-package": "^8.0.0"
