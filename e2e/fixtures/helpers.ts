@@ -17,7 +17,5 @@ export async function searchAndAddFirstTrack(page: Page) {
 
 export async function savePlaylist(page: Page, name: string) {
   await page.getByTestId('playlist-title-input').fill(name);
-  // First click populates trackUris state; second click sends the save request.
-  await page.getByTestId('save-playlist-button').click();
   await page.getByTestId('save-playlist-button').click();
 }

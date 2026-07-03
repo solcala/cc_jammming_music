@@ -28,8 +28,6 @@ test.describe('Spotify save playlist API', () => {
         request.url().includes(`/playlists/${mockPlaylist.id}/tracks`)
     );
 
-    // First click populates trackUris state; second click sends the save request.
-    await page.getByTestId('save-playlist-button').click();
     await page.getByTestId('save-playlist-button').click();
 
     const me = await meRequest;
@@ -50,7 +48,6 @@ test.describe('Spotify save playlist API', () => {
     await searchAndAddFirstTrack(page);
 
     await page.getByTestId('playlist-title-input').fill('My Test Playlist');
-    await page.getByTestId('save-playlist-button').click();
     await page.getByTestId('save-playlist-button').click();
 
     await expect(page.getByTestId('playlist-message')).toHaveText('Playlist created');

@@ -15,7 +15,6 @@ function App() {
   const [playlistName, setPlaylistName] = useState('');
   const [playlistTracks, setPlaylistTracks] = useState([]);
   const [message, setMessage] = useState("");
-  const [trackUris, setTracksUri] = useState([]);
 
   // Spotify Calls
   const search = useCallback(() => {
@@ -24,19 +23,17 @@ function App() {
   }, [searchBy]);
 
   const savePlaylist = useCallback(async () => {
-
     try {
-      setTracksUri(Array.from(playlistTracks, song => song.uri));
-      const response = await Spotify.savePlaylist(playlistName, trackUris);
+      const uris = playlistTracks.map((song) => song.uri);
+      const response = await Spotify.savePlaylist(playlistName, uris);
       if (response === 201) {
-        clearPlaylist()
-        addMessage()
+        clearPlaylist();
+        addMessage();
       }
-
     } catch (e) {
-      console.log('savePlaylist Error catched: ', e)
+      console.log('savePlaylist Error catched: ', e);
     }
-  }, [playlistName, trackUris, playlistTracks]);
+  }, [playlistName, playlistTracks]);
 
   // Other functions
   const clearPlaylist = () => {
