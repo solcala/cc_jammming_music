@@ -17,3 +17,8 @@ it('renders tracks passed as results', () => {
   render(<SearchResults results={mockTracks} addToPlaylist={() => {}} />);
   expect(screen.getByText('Track A')).toBeInTheDocument();
 });
+
+it('shows empty state after a search with no results', () => {
+  render(<SearchResults results={[]} hasSearched={true} addToPlaylist={() => {}} />);
+  expect(screen.getByTestId('search-empty-message')).toHaveTextContent('No results found');
+});

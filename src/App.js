@@ -12,26 +12,38 @@ function App() {
 
   const [searchBy, setSearchBy] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [playlistName, setPlaylistName] = useState('');
   const [playlistTracks, setPlaylistTracks] = useState([]);
   const [message, setMessage] = useState("");
 
   // Spotify Calls
   const search = useCallback(() => {
+    setIsSearching(true);
+    setHasSearched(true);
     Spotify.search(searchBy)
-      .then(setSearchResults);
+      .then((results) => setSearchResults(results || []))
+      .finally(() => setIsSearching(false));
   }, [searchBy]);
 
   const savePlaylist = useCallback(async () => {
+    setIsSaving(true);
     try {
       const uris = playlistTracks.map((song) => song.uri);
       const response = await Spotify.savePlaylist(playlistName, uris);
       if (response === 201) {
         clearPlaylist();
         addMessage();
+      } else {
+        addMessage('Unable to save playlist. Please try again.');
       }
     } catch (e) {
       console.log('savePlaylist Error catched: ', e);
+      addMessage('Unable to save playlist. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   }, [playlistName, playlistTracks]);
 
@@ -50,7 +62,7 @@ function App() {
     if (!result) {
       setPlaylistTracks((prev) => [...prev, track]);
     } else {
-      alert('This song is in the playlist.')
+      addMessage('This song is in the playlist.');
     }
 
   };
@@ -66,11 +78,13 @@ function App() {
         search={search}
         searchBy={searchBy}
         setSearchBy={setSearchBy}
+        isSearching={isSearching}
       />
       <div className='container'>
         <SearchResults
           className="search-results"
           results={searchResults}
+          hasSearched={hasSearched}
           addToPlaylist={addToPlaylist} />
         <Playlist className="track-list"
           playlistTracks={playlistTracks}
@@ -80,6 +94,7 @@ function App() {
           savePlaylist={savePlaylist}
           addMessage={addMessage}
           message={message}
+          isSaving={isSaving}
         />
       </div>
     </div>

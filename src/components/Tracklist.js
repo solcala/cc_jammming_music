@@ -5,17 +5,14 @@ function Tracklist({ tracks, removeFromPlaylist, addRemoveTrack, addToPlaylist }
 
   return (
     <>
-      {
-        tracks ?
-          tracks.map((song) => (
-            <Track key={song.id}
-              addRemoveTrack={addRemoveTrack}
-              track={song}
-              removeFromPlaylist={removeFromPlaylist}
-              addToPlaylist={addToPlaylist}
-            />
-          )) : console.log('no tracks')
-      }
+      {tracks?.map((song) => (
+        <Track key={song.id}
+          addRemoveTrack={addRemoveTrack}
+          track={song}
+          removeFromPlaylist={removeFromPlaylist}
+          addToPlaylist={addToPlaylist}
+        />
+      ))}
     </>
   )
 }

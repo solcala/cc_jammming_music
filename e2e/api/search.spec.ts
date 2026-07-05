@@ -33,10 +33,10 @@ test.describe('Spotify search API', () => {
       }
     });
 
-    page.on('dialog', (dialog) => dialog.accept());
     await page.getByTestId('search-button').click();
 
     expect(searchCalled).toBe(false);
+    await expect(page.getByTestId('search-error')).toHaveText('Please enter a song title');
   });
 });
 
@@ -50,5 +50,6 @@ base.describe('Spotify search API errors', () => {
 
     await expect(page.getByTestId('track-item-track-1')).not.toBeVisible();
     await expect(page.getByTestId('track-item-track-2')).not.toBeVisible();
+    await expect(page.getByTestId('search-empty-message')).toHaveText('No results found');
   });
 });

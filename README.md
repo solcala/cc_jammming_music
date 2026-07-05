@@ -73,6 +73,14 @@ npm run test:e2e
 
 The project deploys to GitHub Pages via a unified CI workflow (`.github/workflows/deploy.yml`) that builds, runs all tests, and deploys only when tests pass on the `main` branch.
 
+When deploying to GitHub Pages, set `REACT_APP_REDIRECT_URI` to your published app URL (for example `https://solcala.github.io/cc_jammming_music/`) and register that exact URI in your Spotify Developer Dashboard.
+
+Playwright reports from CI are embedded at `/reports/index.html` on the deployed site when tests run.
+
+## Spotify authentication note
+
+This app uses Spotify's implicit grant flow, which Spotify has deprecated for new applications. It remains sufficient for this learning project, but a future migration to Authorization Code with PKCE is recommended for production use.
+
 ## Tech Stack
 
 - React 18 (Create React App)

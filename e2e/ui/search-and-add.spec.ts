@@ -23,4 +23,19 @@ test.describe('Search and add to playlist', () => {
     await expect(playlist.getByTestId('track-remove-track-1')).toBeVisible();
     await expect(page.getByTestId('track-add-track-1')).toBeVisible();
   });
+
+  test('shows empty state when search returns no tracks', async ({ page }) => {
+    await page.route('**/api.spotify.com/v1/search*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ tracks: { items: [] } }),
+      });
+    });
+
+    await page.getByTestId('search-by-input').fill('missing song');
+    await page.getByTestId('search-button').click();
+
+    await expect(page.getByTestId('search-empty-message')).toHaveText('No results found');
+  });
 });
