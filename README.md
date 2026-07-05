@@ -71,11 +71,32 @@ npm run test:e2e
 
 ## Deployment
 
-The project deploys to GitHub Pages via a unified CI workflow (`.github/workflows/deploy.yml`) that builds, runs all tests, and deploys only when tests pass on the `main` branch.
+The project deploys to GitHub Pages via a unified CI workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) that runs on every `pull_request` and on `push` to `main`.
 
-When deploying to GitHub Pages, set `REACT_APP_REDIRECT_URI` to your published app URL (for example `https://solcala.github.io/cc_jammming_music/`) and register that exact URI in your Spotify Developer Dashboard.
+### CI pipeline
 
-Playwright reports from CI are embedded at `/reports/index.html` on the deployed site when tests run.
+1. Install dependencies (`npm ci`)
+2. Run Jest unit tests
+3. Build the React app for production
+4. Run Playwright end-to-end tests
+5. Embed the Playwright HTML report in `build/reports/`
+6. Upload the Playwright report as a GitHub Actions artifact (every run)
+7. Deploy to GitHub Pages only when all tests pass on a `main` branch push
+
+### Live URLs
+
+| Resource | URL |
+| --- | --- |
+| App | https://solcala.github.io/cc_jammming_music/ |
+| Playwright report (after successful deploy) | https://solcala.github.io/cc_jammming_music/reports/index.html |
+
+On failed runs, the Playwright report is still available from the **Artifacts** section of the GitHub Actions run page.
+
+### Spotify configuration for production
+
+Set `REACT_APP_REDIRECT_URI` to `https://solcala.github.io/cc_jammming_music/` and register that exact URI in your [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
+
+For live Spotify login on the deployed app, add a GitHub repository secret named `REACT_APP_SPOTIFY_CLIENT_ID` with your Spotify client ID. Without it, the app still renders; only Spotify authentication will not work in production.
 
 ## Spotify authentication note
 
