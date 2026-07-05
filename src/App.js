@@ -2,7 +2,7 @@ import React from 'react';
 import './App.css';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
-import SeachResults from './components/SearchResults';
+import SearchResults from './components/SearchResults';
 import Playlist from './components/Playlist';
 import Spotify from "./util/Spotify";
 
@@ -68,7 +68,7 @@ function App() {
         setSearchBy={setSearchBy}
       />
       <div className='container'>
-        <SeachResults
+        <SearchResults
           className="search-results"
           results={searchResults}
           addToPlaylist={addToPlaylist} />

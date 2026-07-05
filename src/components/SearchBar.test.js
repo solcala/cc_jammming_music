@@ -28,6 +28,16 @@ it('have search button enable', () => {
   expect(button).toBeEnabled();
 });
 
-it('should display search results', () => {
-  // TODO with mock data
+it('calls search callback when button is clicked with a non-empty query', () => {
+  const mockSearch = jest.fn();
+  render(
+    <SearchBar
+      search={mockSearch}
+      searchBy={'Song'}
+      setSearchBy={() => {}}
+    />
+  );
+  const button = screen.getByTestId('search-button');
+  button.click();
+  expect(mockSearch).toHaveBeenCalledTimes(1);
 });

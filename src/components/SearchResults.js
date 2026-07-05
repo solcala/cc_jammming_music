@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './SearchResults.module.css';
 import Tracklist from './Tracklist';
 
-function SeachResults({ results, addToPlaylist }) {
+function SearchResults({ results, addToPlaylist }) {
   const addRemoveTrack = true;
   return (
     <div className={styles.searchResults}>
@@ -15,4 +15,4 @@ function SeachResults({ results, addToPlaylist }) {
   )
 }
 
-export default SeachResults;
+export default SearchResults;
