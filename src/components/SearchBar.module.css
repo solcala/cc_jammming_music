@@ -21,3 +21,9 @@ button.searchBtn  {
   display: inline-block;
   margin: 0.5rem 0;
 }
+
+.error {
+  color: #b00020;
+  font-size: 0.875rem;
+  margin: 0.25rem 0;
+}

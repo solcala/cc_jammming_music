@@ -1,0 +1,87 @@
+name: Build, Test, and Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      CI: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Jest unit tests
+        run: CI=true npm test -- --watchAll=false
+
+      - name: Build React app
+        env:
+          REACT_APP_SPOTIFY_CLIENT_ID: ${{ secrets.REACT_APP_SPOTIFY_CLIENT_ID || 'test-client-id' }}
+          REACT_APP_REDIRECT_URI: https://solcala.github.io/cc_jammming_music/
+        run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        env:
+          REACT_APP_SPOTIFY_CLIENT_ID: test-client-id
+          REACT_APP_REDIRECT_URI: http://localhost:3000
+        run: npx playwright test
+
+      - name: Embed Playwright report in build output
+        if: always()
+        run: mkdir -p build/reports && cp -r playwright-report/* build/reports/ || true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+      - name: Publish workflow summary
+        if: always()
+        run: |
+          {
+            echo "## Test and deploy summary"
+            echo "- App URL: https://solcala.github.io/cc_jammming_music/"
+            echo "- Playwright report (after successful deploy): https://solcala.github.io/cc_jammming_music/reports/index.html"
+            echo "- Download report artifact from this run's **Artifacts** section"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Confirm deployment
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: echo "Deployed to GitHub Pages at https://solcala.github.io/cc_jammming_music/" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy to GitHub Pages
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build

@@ -1,6 +1,6 @@
 {
   "name": "cc_jammming_music",
-  "homepage":"https://jazcala.github.io/cc_jammming_music/",
+  "homepage": "https://solcala.github.io/cc_jammming_music/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -8,7 +8,6 @@
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
     "@types/react": "^18.3.1",
-    "express-session": "^1.18.0",
     "gh-pages": "^6.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -21,6 +20,10 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "test": "react-scripts test",
+    "test:e2e": "playwright test",
+    "test:api": "playwright test e2e/api",
+    "test:ui": "playwright test e2e/ui",
+    "test:e2e:ui": "playwright test --ui",
     "eject": "react-scripts eject",
     "postinstall": "patch-package"
   },
@@ -44,6 +47,17 @@
     "extends": [
       "react-app",
       "react-app/jest"
+    ],
+    "overrides": [
+      {
+        "files": [
+          "e2e/**/*.ts",
+          "e2e/**/*.tsx"
+        ],
+        "rules": {
+          "testing-library/prefer-screen-queries": "off"
+        }
+      }
     ]
   },
   "browserslist": {
@@ -59,6 +73,7 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "eslint": "^8.57.1",
     "eslint-plugin-testing-library": "^6.5.0",
     "patch-package": "^8.0.0"
