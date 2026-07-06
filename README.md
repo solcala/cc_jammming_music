@@ -111,6 +111,10 @@ npm run test:all
 
 This runs `test:coverage`, then `build`, then `test:e2e:ci`.
 
+### Dependency updates
+
+[Dependabot](https://docs.github.com/en/code-security/dependabot) opens weekly pull requests for npm packages and GitHub Actions (see [`.github/dependabot.yml`](.github/dependabot.yml)). Review security alerts on the repository **Security** tab and merge Dependabot PRs after CI passes.
+
 ## Deployment
 
 The project deploys to GitHub Pages via a unified CI workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) that runs on every `pull_request` and on `push` to `main`.
