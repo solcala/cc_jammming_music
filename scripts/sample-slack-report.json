@@ -1,0 +1,31 @@
+{
+  "workflow": "Build, Test, and Deploy",
+  "ref": "main",
+  "event": "push",
+  "runUrl": "https://github.com/solcala/cc_jammming_music/actions/runs/123456789",
+  "jobs": {
+    "build_and_unit": {
+      "status": "success",
+      "passed": 44,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 12000,
+      "coverage": { "lines": 80.26 }
+    },
+    "e2e": {
+      "status": "success",
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 45000
+    },
+    "deploy": {
+      "status": "success",
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 8000,
+      "deployed": true
+    }
+  }
+}

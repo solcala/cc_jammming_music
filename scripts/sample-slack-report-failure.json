@@ -1,0 +1,31 @@
+{
+  "workflow": "Build, Test, and Deploy",
+  "ref": "feat/phase-0-slack-reports",
+  "event": "pull_request",
+  "runUrl": "https://github.com/solcala/cc_jammming_music/actions/runs/987654321",
+  "jobs": {
+    "build_and_unit": {
+      "status": "success",
+      "passed": 44,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 11000,
+      "coverage": { "lines": 79.5 }
+    },
+    "e2e": {
+      "status": "failure",
+      "passed": 22,
+      "failed": 2,
+      "skipped": 0,
+      "durationMs": 52000
+    },
+    "deploy": {
+      "status": "skipped",
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 0,
+      "deployed": false
+    }
+  }
+}
