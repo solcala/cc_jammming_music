@@ -87,3 +87,50 @@ it('clears search error when user types in the input', async () => {
   await user.type(screen.getByTestId('search-by-input'), 'a');
   expect(screen.queryByTestId('search-error')).not.toBeInTheDocument();
 });
+
+
+it('submits search when Enter is pressed with a non-empty query', async () => {
+  const mockSearch = jest.fn();
+  const user = userEvent.setup();
+
+  render(
+    <SearchBar
+      search={mockSearch}
+      searchBy={'Song'}
+      setSearchBy={() => {}}
+    />
+  );
+
+  await user.type(screen.getByTestId('search-by-input'), '{enter}');
+
+  expect(mockSearch).toHaveBeenCalledTimes(1);
+});
+
+it('shows inline error when Enter is pressed with an empty query', async () => {
+  const user = userEvent.setup();
+
+  render(
+    <SearchBar
+      search={() => {}}
+      searchBy={''}
+      setSearchBy={() => {}}
+    />
+  );
+
+  await user.type(screen.getByTestId('search-by-input'), '{enter}');
+
+  expect(screen.getByTestId('search-error')).toHaveTextContent('Please enter a song title');
+});
+
+
+it('associates the search input with a visible label', () => {
+  render(
+    <SearchBar
+      search={() => {}}
+      searchBy={''}
+      setSearchBy={() => {}}
+    />
+  );
+
+  expect(screen.getByLabelText('Search by song title')).toBe(screen.getByTestId('search-by-input'));
+});

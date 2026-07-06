@@ -61,6 +61,39 @@ it('search populates results from mocked Spotify', async () => {
   expect(screen.getByTestId('track-name-track-2')).toHaveTextContent('Test Song Two');
 });
 
+it('shows search error when Spotify search fails', async () => {
+  Spotify.search.mockResolvedValue({ error: true });
+  const user = userEvent.setup();
+  render(<App />);
+
+  await user.type(screen.getByTestId('search-by-input'), 'test');
+  await user.click(screen.getByTestId('search-button'));
+
+  await waitFor(() => {
+    expect(screen.getByTestId('search-api-error')).toHaveTextContent(
+      'Unable to search right now. Please try again.',
+    );
+  });
+  expect(screen.queryByTestId('track-name-track-1')).not.toBeInTheDocument();
+});
+
+it('clears search API error when the user types again', async () => {
+  Spotify.search.mockResolvedValue({ error: true });
+  const user = userEvent.setup();
+  render(<App />);
+
+  await user.type(screen.getByTestId('search-by-input'), 'test');
+  await user.click(screen.getByTestId('search-button'));
+
+  await waitFor(() => {
+    expect(screen.getByTestId('search-api-error')).toBeInTheDocument();
+  });
+
+  await user.type(screen.getByTestId('search-by-input'), 'x');
+
+  expect(screen.queryByTestId('search-api-error')).not.toBeInTheDocument();
+});
+
 it('shows inline error on empty search without calling Spotify', async () => {
   const user = userEvent.setup();
   render(<App />);
@@ -98,6 +131,22 @@ it('shows duplicate track message when adding the same track twice', async () =>
   expect(screen.getByTestId('playlist-message')).toHaveTextContent(
     'This song is in the playlist.',
   );
+});
+
+it('clears duplicate track message when a different track is added', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+
+  await searchForTracks(user);
+  await user.click(screen.getByTestId('track-add-track-1'));
+  await user.click(screen.getByTestId('track-add-track-1'));
+  expect(screen.getByTestId('playlist-message')).toHaveTextContent(
+    'This song is in the playlist.',
+  );
+
+  await user.click(screen.getByTestId('track-add-track-2'));
+
+  expect(screen.getByTestId('playlist-message')).toHaveTextContent('');
 });
 
 it('removes a track from the playlist panel', async () => {

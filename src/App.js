@@ -18,13 +18,29 @@ function App() {
   const [playlistName, setPlaylistName] = useState('');
   const [playlistTracks, setPlaylistTracks] = useState([]);
   const [message, setMessage] = useState("");
+  const [searchApiError, setSearchApiError] = useState("");
+
+  const handleSearchByChange = (value) => {
+    setSearchBy(value);
+    if (searchApiError) {
+      setSearchApiError("");
+    }
+  };
 
   // Spotify Calls
   const search = useCallback(() => {
     setIsSearching(true);
     setHasSearched(true);
+    setSearchApiError("");
     Spotify.search(searchBy)
-      .then((results) => setSearchResults(results || []))
+      .then((results) => {
+        if (results?.error) {
+          setSearchApiError("Unable to search right now. Please try again.");
+          setSearchResults([]);
+          return;
+        }
+        setSearchResults(results || []);
+      })
       .finally(() => setIsSearching(false));
   }, [searchBy]);
 
@@ -61,6 +77,9 @@ function App() {
     let result = playlistTracks.find(elem => elem.id === track.id);
     if (!result) {
       setPlaylistTracks((prev) => [...prev, track]);
+      setMessage((current) =>
+        current === 'This song is in the playlist.' ? '' : current,
+      );
     } else {
       addMessage('This song is in the playlist.');
     }
@@ -77,9 +96,14 @@ function App() {
       <SearchBar
         search={search}
         searchBy={searchBy}
-        setSearchBy={setSearchBy}
+        setSearchBy={handleSearchByChange}
         isSearching={isSearching}
       />
+      {searchApiError && (
+        <p className="searchApiError" role="alert" data-testid="search-api-error">
+          {searchApiError}
+        </p>
+      )}
       <div className='container'>
         <SearchResults
           className="search-results"

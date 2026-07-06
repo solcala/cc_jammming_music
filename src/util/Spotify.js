@@ -54,7 +54,7 @@ const Spotify = {
       }
       const accessToken = await this.getAccessToken();
       const response = await fetch(
-        `https://api.spotify.com/v1/search?type=track&q=${term}`,
+        `https://api.spotify.com/v1/search?type=track&q=${encodeURIComponent(term)}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -81,10 +81,11 @@ const Spotify = {
           uri: track.uri,
         }));
       }
-      throw new Error(`Request failed - search by  ${term}`);
+      return { error: true };
     } catch (error) {
       console.log(`Request failed - search by  ${term}`);
       console.log(error);
+      return { error: true };
     }
   },
 

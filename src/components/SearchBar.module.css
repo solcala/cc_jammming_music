@@ -27,3 +27,10 @@ button.searchBtn  {
   font-size: 0.875rem;
   margin: 0.25rem 0;
 }
+
+.searchLabel {
+  width: 100%;
+  text-align: left;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}

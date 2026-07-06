@@ -38,7 +38,7 @@ function Playlist({
 
     return (
         <div className={styles.playlist} id="playlist-section" data-testid="playlist-section">
-            <p id='message' data-testid="playlist-message">{message}</p>
+            <p id="message" data-testid="playlist-message" role="status" aria-live="polite">{message}</p>
             <input
                 aria-label="playlist-title"
                 className={styles.playlistName}
@@ -62,7 +62,7 @@ function Playlist({
                 type="button"
                 data-testid="save-playlist-button"
                 onClick={handleSubmitSavePlaylist}
-                disabled={isSaving}>
+                disabled={isSaving || playlistTracks.length === 0}>
                 {isSaving ? 'Saving...' : 'Save to Spotify'}
             </button>
         </div>
