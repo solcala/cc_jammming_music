@@ -77,6 +77,9 @@ function App() {
     let result = playlistTracks.find(elem => elem.id === track.id);
     if (!result) {
       setPlaylistTracks((prev) => [...prev, track]);
+      setMessage((current) =>
+        current === 'This song is in the playlist.' ? '' : current,
+      );
     } else {
       addMessage('This song is in the playlist.');
     }

@@ -133,6 +133,22 @@ it('shows duplicate track message when adding the same track twice', async () =>
   );
 });
 
+it('clears duplicate track message when a different track is added', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+
+  await searchForTracks(user);
+  await user.click(screen.getByTestId('track-add-track-1'));
+  await user.click(screen.getByTestId('track-add-track-1'));
+  expect(screen.getByTestId('playlist-message')).toHaveTextContent(
+    'This song is in the playlist.',
+  );
+
+  await user.click(screen.getByTestId('track-add-track-2'));
+
+  expect(screen.getByTestId('playlist-message')).toHaveTextContent('');
+});
+
 it('removes a track from the playlist panel', async () => {
   const user = userEvent.setup();
   render(<App />);

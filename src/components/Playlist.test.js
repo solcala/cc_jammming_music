@@ -65,13 +65,23 @@ it("shows inline error when saving without a playlist title", async () => {
   );
 });
 
-it("shows inline error when saving without tracks", async () => {
-  const user = userEvent.setup();
+it("disables save button when playlist has no tracks", () => {
   render(<Playlist {...defaultProps} playlistName="Empty Playlist" />);
-  await user.click(screen.getByTestId("save-playlist-button"));
-  expect(screen.getByTestId("playlist-validation-error")).toHaveTextContent(
-    "Add at least a track to the playlist",
-  );
+  expect(screen.getByTestId("save-playlist-button")).toBeDisabled();
+});
+
+it("enables save button when playlist has tracks", () => {
+  const tracks = [
+    {
+      id: "1",
+      name: "My Song",
+      artist: "Artist X",
+      album: "Album X",
+      uri: "spotify:track:1",
+    },
+  ];
+  render(<Playlist {...defaultProps} playlistTracks={tracks} playlistName="My Playlist" />);
+  expect(screen.getByTestId("save-playlist-button")).toBeEnabled();
 });
 
 it("shows Saving... while a save is in progress", () => {

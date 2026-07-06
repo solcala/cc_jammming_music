@@ -21,10 +21,9 @@ test.describe('Form validation', () => {
     await expect(page.getByTestId('playlist-validation-error')).toHaveText('Add a playlist title');
   });
 
-  test('shows inline error when saving without tracks', async ({ page }) => {
+  test('disables save button when playlist has no tracks', async ({ page }) => {
     await page.getByTestId('playlist-title-input').fill('Empty Playlist');
-    await page.getByTestId('save-playlist-button').click();
-    await expect(page.getByTestId('playlist-validation-error')).toHaveText('Add at least a track to the playlist');
+    await expect(page.getByTestId('save-playlist-button')).toBeDisabled();
   });
 
   test('shows duplicate track message in playlist panel', async ({ page }) => {

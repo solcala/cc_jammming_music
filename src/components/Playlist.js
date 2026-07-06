@@ -62,7 +62,7 @@ function Playlist({
                 type="button"
                 data-testid="save-playlist-button"
                 onClick={handleSubmitSavePlaylist}
-                disabled={isSaving}>
+                disabled={isSaving || playlistTracks.length === 0}>
                 {isSaving ? 'Saving...' : 'Save to Spotify'}
             </button>
         </div>
