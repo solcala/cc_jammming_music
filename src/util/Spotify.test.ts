@@ -1,4 +1,6 @@
-let Spotify;
+import type SpotifyType from './Spotify';
+
+let Spotify: typeof SpotifyType;
 
 const seedAccessToken = () => {
   window.location.href =
@@ -6,20 +8,23 @@ const seedAccessToken = () => {
   Spotify.checkAccessToken();
 };
 
+const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+
 beforeEach(() => {
   jest.resetModules();
   jest.clearAllMocks();
   jest.useFakeTimers();
 
-  global.fetch = jest.fn();
+  global.fetch = mockFetch;
 
-  delete window.location;
-  window.location = { href: 'http://localhost/' };
+  delete (window as { location?: Location }).location;
+  window.location = { href: 'http://localhost/' } as Location;
 
   window.history.pushState = jest.fn();
 
   process.env.PUBLIC_URL = '/cc_jammming_music';
 
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   Spotify = require('./Spotify').default;
 });
 
@@ -60,12 +65,12 @@ describe('search', () => {
     const result = await Spotify.search('');
 
     expect(result).toBeUndefined();
-    expect(fetch).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it('maps API response to track objects', async () => {
     seedAccessToken();
-    fetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({
@@ -81,7 +86,7 @@ describe('search', () => {
           ],
         },
       }),
-    });
+    } as Response);
 
     const tracks = await Spotify.search('test');
 
@@ -94,7 +99,7 @@ describe('search', () => {
         uri: 'spotify:track:track-1',
       },
     ]);
-    expect(fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       'https://api.spotify.com/v1/search?type=track&q=test',
       {
         headers: { Authorization: 'Bearer mock-access-token' },
@@ -104,23 +109,24 @@ describe('search', () => {
 
   it('returns [] on 401', async () => {
     seedAccessToken();
-    fetch.mockResolvedValueOnce({ ok: false, status: 401 });
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 401 } as Response);
 
     const tracks = await Spotify.search('test');
 
     expect(tracks).toEqual([]);
   });
+
   it('encodes special characters in the search query', async () => {
     seedAccessToken();
-    fetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({ tracks: { items: [] } }),
-    });
+    } as Response);
 
     await Spotify.search('a&b c');
 
-    expect(fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       'https://api.spotify.com/v1/search?type=track&q=a%26b%20c',
       {
         headers: { Authorization: 'Bearer mock-access-token' },
@@ -130,7 +136,7 @@ describe('search', () => {
 
   it('returns an error signal on non-401 HTTP failures', async () => {
     seedAccessToken();
-    fetch.mockResolvedValueOnce({ ok: false, status: 500 });
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 } as Response);
 
     const result = await Spotify.search('test');
 
@@ -139,31 +145,30 @@ describe('search', () => {
 
   it('returns an error signal when fetch rejects', async () => {
     seedAccessToken();
-    fetch.mockRejectedValueOnce(new Error('network down'));
+    mockFetch.mockRejectedValueOnce(new Error('network down'));
 
     const result = await Spotify.search('test');
 
     expect(result).toEqual({ error: true });
   });
-
 });
 
 describe('savePlaylist', () => {
   it('calls /me, create playlist, then add tracks in order', async () => {
     seedAccessToken();
-    fetch
+    mockFetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ id: 'user-1' }),
-      })
+      } as Response)
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ id: 'playlist-1' }),
-      })
+      } as Response)
       .mockResolvedValueOnce({
         ok: true,
         status: 201,
-      });
+      } as Response);
 
     const status = await Spotify.savePlaylist('My Playlist', [
       'spotify:track:1',
@@ -171,11 +176,11 @@ describe('savePlaylist', () => {
     ]);
 
     expect(status).toBe(201);
-    expect(fetch).toHaveBeenNthCalledWith(1, 'https://api.spotify.com/v1/me', {
+    expect(mockFetch).toHaveBeenNthCalledWith(1, 'https://api.spotify.com/v1/me', {
       headers: { Authorization: 'Bearer mock-access-token' },
       cache: 'no-cache',
     });
-    expect(fetch).toHaveBeenNthCalledWith(
+    expect(mockFetch).toHaveBeenNthCalledWith(
       2,
       'https://api.spotify.com/v1/users/user-1/playlists',
       {
@@ -184,7 +189,7 @@ describe('savePlaylist', () => {
         body: JSON.stringify({ name: 'My Playlist' }),
       },
     );
-    expect(fetch).toHaveBeenNthCalledWith(
+    expect(mockFetch).toHaveBeenNthCalledWith(
       3,
       'https://api.spotify.com/v1/users/user-1/playlists/playlist-1/tracks',
       {
