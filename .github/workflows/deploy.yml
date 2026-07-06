@@ -36,6 +36,31 @@ jobs:
       - name: Run Jest unit tests with coverage
         run: npm run test:coverage
 
+      - name: Publish coverage summary
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "
+              const { total } = require('./coverage/coverage-summary.json');
+              const row = (label, key) =>
+                '| ' + label + ' | ' + total[key].pct + '% (' + total[key].covered + '/' + total[key].total + ') |';
+              console.log([
+                '## Jest coverage',
+                '| Metric | Result |',
+                '| --- | --- |',
+                row('Statements', 'statements'),
+                row('Branches', 'branches'),
+                row('Functions', 'functions'),
+                row('Lines', 'lines'),
+                '',
+                'Download the full HTML report from the **coverage** artifact.',
+              ].join('\n'));
+            " >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## Jest coverage" >> "$GITHUB_STEP_SUMMARY"
+            echo "Coverage report not generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Build React app
         env:
           REACT_APP_SPOTIFY_CLIENT_ID: ${{ fromJSON(toJSON(secrets)).REACT_APP_SPOTIFY_CLIENT_ID || 'test-client-id' }}
@@ -141,7 +166,7 @@ jobs:
             echo "## Test and deploy summary"
             echo "- App URL: https://solcala.github.io/cc_jammming_music/"
             echo "- Playwright report (after successful deploy): https://solcala.github.io/cc_jammming_music/reports/index.html"
-            echo "- Jest coverage artifact: **coverage**"
+            echo "- Jest coverage: see **build_and_unit** job summary and **coverage** artifact"
             echo "- Playwright report artifact: **playwright-report-${{ github.run_id }}**"
           } >> "$GITHUB_STEP_SUMMARY"
 
