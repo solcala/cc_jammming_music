@@ -23,7 +23,11 @@ function SearchBar({ search, searchBy, setSearchBy, isSearching = false }) {
 
   return (
     <form className={styles.searchBar} onSubmit={handleSubmit} data-testid="search-form">
+      <label htmlFor="search-by-input" className={styles.searchLabel}>
+        Search by song title
+      </label>
       <input
+        id="search-by-input"
         type="text"
         placeholder="Enter a song title"
         onChange={onChangeSearchBy}

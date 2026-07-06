@@ -121,3 +121,16 @@ it('shows inline error when Enter is pressed with an empty query', async () => {
 
   expect(screen.getByTestId('search-error')).toHaveTextContent('Please enter a song title');
 });
+
+
+it('associates the search input with a visible label', () => {
+  render(
+    <SearchBar
+      search={() => {}}
+      searchBy={''}
+      setSearchBy={() => {}}
+    />
+  );
+
+  expect(screen.getByLabelText('Search by song title')).toBe(screen.getByTestId('search-by-input'));
+});
