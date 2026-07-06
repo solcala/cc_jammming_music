@@ -22,7 +22,7 @@ beforeEach(() => {
 
   window.history.pushState = jest.fn();
 
-  process.env.PUBLIC_URL = '/cc_jammming_music';
+  (process.env as { PUBLIC_URL?: string }).PUBLIC_URL = '/cc_jammming_music';
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   Spotify = require('./Spotify').default;
