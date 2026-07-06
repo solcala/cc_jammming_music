@@ -25,7 +25,7 @@
     "test:api": "playwright test e2e/api",
     "test:ui": "playwright test e2e/ui",
     "test:e2e:ui": "playwright test --ui",
-    "test:coverage": "CI=true npm test -- --coverage --watchAll=false",
+    "test:coverage": "mkdir -p test-results && CI=true npm test -- --coverage --watchAll=false --json --outputFile=test-results/jest.json",
     "eject": "react-scripts eject",
     "postinstall": "patch-package"
   },

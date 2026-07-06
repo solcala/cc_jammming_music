@@ -36,6 +36,10 @@ jobs:
       - name: Run Jest unit tests with coverage
         run: npm run test:coverage
 
+      - name: Write Jest CI summary for Slack
+        if: always()
+        run: node scripts/write-jest-ci-summary.js
+
       - name: Publish coverage summary
         if: always()
         run: |
@@ -80,6 +84,14 @@ jobs:
         with:
           name: coverage
           path: coverage/
+          retention-days: 7
+
+      - name: Upload test results artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-build-and-unit
+          path: test-results/
           retention-days: 7
 
   e2e:
