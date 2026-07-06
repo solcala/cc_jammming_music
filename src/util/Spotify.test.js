@@ -110,6 +110,42 @@ describe('search', () => {
 
     expect(tracks).toEqual([]);
   });
+  it('encodes special characters in the search query', async () => {
+    seedAccessToken();
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ tracks: { items: [] } }),
+    });
+
+    await Spotify.search('a&b c');
+
+    expect(fetch).toHaveBeenCalledWith(
+      'https://api.spotify.com/v1/search?type=track&q=a%26b%20c',
+      {
+        headers: { Authorization: 'Bearer mock-access-token' },
+      },
+    );
+  });
+
+  it('returns an error signal on non-401 HTTP failures', async () => {
+    seedAccessToken();
+    fetch.mockResolvedValueOnce({ ok: false, status: 500 });
+
+    const result = await Spotify.search('test');
+
+    expect(result).toEqual({ error: true });
+  });
+
+  it('returns an error signal when fetch rejects', async () => {
+    seedAccessToken();
+    fetch.mockRejectedValueOnce(new Error('network down'));
+
+    const result = await Spotify.search('test');
+
+    expect(result).toEqual({ error: true });
+  });
+
 });
 
 describe('savePlaylist', () => {
