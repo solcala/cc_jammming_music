@@ -14,6 +14,40 @@ const summaryPaths = {
   deploy: ['ci-reports/deploy/deploy.json'],
 };
 
+const PAGES_FAILURES_BASE =
+  process.env.PLAYWRIGHT_FAILURES_BASE ||
+  'https://solcala.github.io/cc_jammming_music/failures';
+
+function buildTraceViewerUrl(runId, artifactName) {
+  const publicTraceUrl = `${PAGES_FAILURES_BASE}/${runId}/${artifactName}`;
+  return `https://trace.playwright.dev/?trace=${encodeURIComponent(publicTraceUrl)}`;
+}
+
+function enrichE2eSummary(summary) {
+  if (!summary || !summary.failed || summary.failed <= 0) {
+    return summary;
+  }
+
+  const runId = process.env.GITHUB_RUN_ID;
+  const enriched = { ...summary };
+
+  if (!enriched.htmlReportUrl && process.env.GITHUB_RUN_URL) {
+    enriched.htmlReportUrl = `${process.env.GITHUB_RUN_URL}#artifacts`;
+  }
+
+  if (
+    runId &&
+    (!enriched.traceViewerUrls || enriched.traceViewerUrls.length === 0) &&
+    Array.isArray(enriched.traces)
+  ) {
+    enriched.traceViewerUrls = enriched.traces
+      .filter((trace) => trace.artifactName)
+      .map((trace) => buildTraceViewerUrl(runId, trace.artifactName));
+  }
+
+  return enriched;
+}
+
 const resultEnv = {
   build_and_unit: process.env.BUILD_AND_UNIT_RESULT,
   e2e: process.env.E2E_RESULT,
@@ -74,7 +108,11 @@ const report = {
 };
 
 for (const jobName of jobs) {
-  report.jobs[jobName] = findSummary(jobName) || fallbackSummary(jobName);
+  let jobSummary = findSummary(jobName) || fallbackSummary(jobName);
+  if (jobName === 'e2e') {
+    jobSummary = enrichE2eSummary(jobSummary);
+  }
+  report.jobs[jobName] = jobSummary;
 }
 
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });

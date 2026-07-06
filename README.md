@@ -50,6 +50,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `npm run test:e2e` | Run Playwright E2E tests against the CRA dev server |
 | `npm run test:e2e:ci` | Run Playwright E2E tests against the production `build/` |
 | `npm run test:coverage` | Run Jest unit tests with coverage report |
+| `npm run test:all` | Run Jest coverage, production build, and Playwright CI tests (full local check) |
+| `npm run lint` | Run ESLint on `src/` and `e2e/` |
 | `npm run test:api` | Run Playwright API tests only |
 | `npm run test:ui` | Run Playwright UI tests only |
 | `npm run test:e2e:ui` | Open the Playwright test UI |
@@ -97,19 +99,36 @@ npm run test:coverage
 
 Report output is written to `coverage/`.
 
+**Node version note:** CI uses Node 20. Jest coverage works reliably on Node 20. On Node 24, coverage collection may fail due to a `babel-plugin-istanbul` / `glob` compatibility issue with this Create React App setup (the repo pins `glob@^10` for security). Use Node 20 locally for `npm run test:coverage` if you hit that error.
+
+### Full local test suite
+
+Runs the same checks as CI before Playwright (coverage + build + e2e against production `build/`):
+
+```bash
+npm run test:all
+```
+
+This runs `test:coverage`, then `build`, then `test:e2e:ci`.
+
+### Dependency updates
+
+[Dependabot](https://docs.github.com/en/code-security/dependabot) opens weekly pull requests for npm packages and GitHub Actions (see [`.github/dependabot.yml`](.github/dependabot.yml)). Review security alerts on the repository **Security** tab and merge Dependabot PRs after CI passes.
+
 ## Deployment
 
 The project deploys to GitHub Pages via a unified CI workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) that runs on every `pull_request` and on `push` to `main`.
 
 ### CI pipeline
 
-The workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) runs four jobs on every `pull_request` and `push` to `main`:
+The workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) runs five jobs on every `pull_request` and `push` to `main`:
 
 | Job | Runner | Steps |
 | --- | --- | --- |
 | `build_and_unit` | `ubuntu-latest` | `npm ci` → Jest with coverage → production build → upload `build/`, `coverage/`, and test summary artifacts |
 | `e2e` | Playwright Docker (`v1.61.1-jammy`) | Download `build/` → `npm run test:e2e:ci` → upload Playwright report and e2e summary |
 | `deploy` | `ubuntu-latest` | Embed report in `build/reports/` → deploy to GitHub Pages (only on successful `main` push) → upload deploy summary |
+| `publish_failure_traces` | `ubuntu-latest` | On e2e failure only: copy `trace.zip` files to `failures/<run_id>/` on GitHub Pages so trace viewer links work without auth |
 | `notify` | `ubuntu-latest` | Merge job summaries → post Slack notification (`if: always()`) |
 
 E2E tests run against the production `build/` (not the CRA dev server), matching the deployed GitHub Pages subpath.
@@ -139,13 +158,14 @@ Open `coverage/lcov-report/index.html` locally after `npm run test:coverage` for
 
 ### Slack CI notifications
 
-After each workflow run, the `notify` job merges results from `build_and_unit`, `e2e`, and `deploy` and posts a summary to Slack (when configured).
+After each workflow run, the `notify` job merges results from `build_and_unit`, `e2e`, and `deploy` (waiting for `publish_failure_traces` when e2e fails) and posts a summary to Slack (when configured).
 
 #### **What gets posted**
 
 - Green or red header based on overall pass/fail
 - Branch, event type, and total passed / failed / skipped counts
 - Per-job breakdown: Jest unit tests (with line coverage %), Playwright E2E tests, and deploy status
+- On Playwright E2E failure: failed test names, links to open traces in [trace.playwright.dev](https://trace.playwright.dev), and a link to download the HTML report artifact from the Actions run (traces are published to `https://solcala.github.io/cc_jammming_music/failures/<run_id>/` by the `publish_failure_traces` job)
 - Link to the GitHub Actions run
 
 On pull requests, deploy is skipped — the Slack message still reports test results with deploy marked as skipped.

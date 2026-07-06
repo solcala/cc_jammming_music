@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures/test';
+import { mockSpotifyApi } from '../fixtures/mock-spotify-api';
 import { mockPlaylist, mockTracks, mockUser } from '../fixtures/spotify-mocks';
 
 async function searchAndAddFirstTrack(page) {
@@ -53,5 +54,21 @@ test.describe('Spotify save playlist API', () => {
     await expect(page.getByTestId('playlist-message')).toHaveText('Playlist created');
     await expect(page.getByTestId('playlist-title-input')).toHaveValue('');
     await expect(page.getByTestId('track-remove-track-1')).not.toBeVisible();
+  });
+
+  test('shows error message when create playlist fails', async ({ page }) => {
+    await searchAndAddFirstTrack(page);
+    await page.getByTestId('playlist-title-input').fill('Failed Playlist');
+    await mockSpotifyApi(page, { createPlaylistStatus: 500 });
+
+    await page.getByTestId('save-playlist-button').click();
+
+    await expect(page.getByTestId('playlist-message')).toHaveText(
+      'Unable to save playlist. Please try again.'
+    );
+    await expect(page.getByTestId('playlist-title-input')).toHaveValue('Failed Playlist');
+    await expect(
+      page.getByTestId('playlist-section').getByTestId('track-remove-track-1')
+    ).toBeVisible();
   });
 });

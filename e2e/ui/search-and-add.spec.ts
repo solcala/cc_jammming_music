@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures/test';
 import { mockTracks } from '../fixtures/spotify-mocks';
+import { mockEmptySearchResults } from '../fixtures/mock-spotify-api';
 import { searchTracks } from '../fixtures/helpers';
 
 test.describe('Search and add to playlist', () => {
@@ -37,13 +38,7 @@ test.describe('Search and add to playlist', () => {
   });
 
   test('shows empty state when search returns no tracks', async ({ page }) => {
-    await page.route('**/api.spotify.com/v1/search*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ tracks: { items: [] } }),
-      });
-    });
+    await mockEmptySearchResults(page);
 
     await page.getByTestId('search-by-input').fill('missing song');
     await page.getByTestId('search-button').click();

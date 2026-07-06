@@ -27,7 +27,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:coverage": "mkdir -p test-results && CI=true npm test -- --coverage --watchAll=false --json --outputFile=test-results/jest.json",
     "eject": "react-scripts eject",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "lint": "eslint src e2e --max-warnings 0",
+    "test:all": "npm run test:coverage && npm run build && npm run test:e2e:ci"
   },
   "overrides": {
     "nth-check": "^2.1.1",
