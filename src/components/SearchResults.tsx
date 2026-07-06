@@ -1,8 +1,19 @@
 import React from 'react';
+import type { Track } from '../types/spotify';
 import styles from './SearchResults.module.css';
 import Tracklist from './Tracklist';
 
-function SearchResults({ results, addToPlaylist, hasSearched = false }) {
+export interface SearchResultsProps {
+  results: Track[];
+  addToPlaylist: (track: Track) => void;
+  hasSearched?: boolean;
+}
+
+function SearchResults({
+  results,
+  addToPlaylist,
+  hasSearched = false,
+}: SearchResultsProps) {
   const addRemoveTrack = true;
   const showEmptyState = hasSearched && results.length === 0;
 
@@ -16,6 +27,7 @@ function SearchResults({ results, addToPlaylist, hasSearched = false }) {
           tracks={results}
           addRemoveTrack={addRemoveTrack}
           addToPlaylist={addToPlaylist}
+          removeFromPlaylist={() => {}}
         />
       )}
     </div>
