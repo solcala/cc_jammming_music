@@ -64,10 +64,36 @@ npm test
 
 Playwright tests mock all Spotify API calls, so no credentials are required.
 
+**Local development** (CRA dev server):
+
 ```bash
 npx playwright install chromium
 npm run test:e2e
 ```
+
+**CI / production build** (serves `build/` at the GitHub Pages subpath):
+
+```bash
+npm run build
+npm run test:e2e:ci
+```
+
+**Docker** (official Playwright image, matches `@playwright/test` v1.61.1):
+
+```bash
+npm run build
+docker run --rm --ipc=host -v "$PWD":/app -w /app mcr.microsoft.com/playwright:v1.61.1-jammy npm run test:e2e:ci
+```
+
+See [`docker/playwright.Dockerfile`](docker/playwright.Dockerfile) for the pinned image reference.
+
+### Unit test coverage
+
+```bash
+npm run test:coverage
+```
+
+Report output is written to `coverage/`.
 
 ## Deployment
 
@@ -87,8 +113,8 @@ The project deploys to GitHub Pages via a unified CI workflow ([`.github/workflo
 
 | Resource | URL |
 | --- | --- |
-| App | https://solcala.github.io/cc_jammming_music/ |
-| Playwright report (after successful deploy) | https://solcala.github.io/cc_jammming_music/reports/index.html |
+| App | [https://solcala.github.io/cc_jammming_music/](https://solcala.github.io/cc_jammming_music/) |
+| Playwright report (after successful deploy) | [https://solcala.github.io/cc_jammming_music/reports/index.html](https://solcala.github.io/cc_jammming_music/reports/index.html) |
 
 On failed runs, the Playwright report is still available from the **Artifacts** section of the GitHub Actions run page.
 

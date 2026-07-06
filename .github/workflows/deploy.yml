@@ -38,7 +38,7 @@ jobs:
 
       - name: Build React app
         env:
-          REACT_APP_SPOTIFY_CLIENT_ID: ${{ secrets.REACT_APP_SPOTIFY_CLIENT_ID || 'test-client-id' }}
+          REACT_APP_SPOTIFY_CLIENT_ID: ${{ fromJSON(toJSON(secrets)).REACT_APP_SPOTIFY_CLIENT_ID || 'test-client-id' }}
           REACT_APP_REDIRECT_URI: https://solcala.github.io/cc_jammming_music/
         run: npm run build
 
