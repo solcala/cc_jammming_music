@@ -1,0 +1,29 @@
+---
+description: Playwright e2e test style — keep tests declarative, push setup into fixtures
+globs: e2e/**/*.ts
+alwaysApply: false
+---
+
+# E2E test practices
+
+- Keep tests **declarative**: arrange → act → assert. A test body should read like a user story, not implementation logic.
+- **Avoid `if` / branching inside tests** (route handlers, conditionals, loops). Extract that behavior into shared fixtures or helpers instead.
+- Reuse existing mocks (`mockSpotifyApi`, `helpers`) with options rather than duplicating inline `page.route` handlers.
+- Prefer named helpers for repeated flows (`searchAndAddFirstTrack`, `savePlaylist`) and for scenario setup (`mockSpotifyApi(page, { createPlaylistStatus: 500 })`).
+- Put conditional routing, delays, and auth/bootstrap logic in `e2e/fixtures/`, not in spec files.
+
+```typescript
+// ❌ BAD — branching inside the test
+await page.route('**/api.spotify.com/**', async (route) => {
+  if (route.request().method() === 'POST') {
+    await route.fulfill({ status: 500, body: '{}' });
+    return;
+  }
+  await route.continue();
+});
+
+// ✅ GOOD — declarative setup via fixture
+await mockSpotifyApi(page, { createPlaylistStatus: 500 });
+await page.getByTestId('save-playlist-button').click();
+await expect(page.getByTestId('playlist-message')).toHaveText('Unable to save playlist. Please try again.');
+```

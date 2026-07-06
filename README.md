@@ -47,7 +47,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `npm start` | Start the development server |
 | `npm test` | Run Jest unit tests in watch mode |
 | `npm run build` | Build for production to `build/` |
-| `npm run test:e2e` | Run all Playwright end-to-end tests |
+| `npm run test:e2e` | Run Playwright E2E tests against the CRA dev server |
+| `npm run test:e2e:ci` | Run Playwright E2E tests against the production `build/` |
+| `npm run test:coverage` | Run Jest unit tests with coverage report |
 | `npm run test:api` | Run Playwright API tests only |
 | `npm run test:ui` | Run Playwright UI tests only |
 | `npm run test:e2e:ui` | Open the Playwright test UI |
@@ -64,10 +66,36 @@ npm test
 
 Playwright tests mock all Spotify API calls, so no credentials are required.
 
+**Local development** (CRA dev server):
+
 ```bash
 npx playwright install chromium
 npm run test:e2e
 ```
+
+**CI / production build** (serves `build/` at the GitHub Pages subpath):
+
+```bash
+npm run build
+npm run test:e2e:ci
+```
+
+**Docker** (same image as CI — keep in sync with `@playwright/test` in `package.json`):
+
+```bash
+npm run build
+docker run --rm --ipc=host -v "$PWD":/app -w /app mcr.microsoft.com/playwright:v1.61.1-jammy npm run test:e2e:ci
+```
+
+See [`docker/playwright.Dockerfile`](docker/playwright.Dockerfile) for the pinned image reference. When upgrading `@playwright/test`, update both the Docker image tag and the Dockerfile to the matching Playwright release.
+
+### Unit test coverage
+
+```bash
+npm run test:coverage
+```
+
+Report output is written to `coverage/`.
 
 ## Deployment
 
@@ -75,22 +103,38 @@ The project deploys to GitHub Pages via a unified CI workflow ([`.github/workflo
 
 ### CI pipeline
 
-1. Install dependencies (`npm ci`)
-2. Run Jest unit tests
-3. Build the React app for production
-4. Run Playwright end-to-end tests
-5. Embed the Playwright HTML report in `build/reports/`
-6. Upload the Playwright report as a GitHub Actions artifact (every run)
-7. Deploy to GitHub Pages only when all tests pass on a `main` branch push
+The workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) runs three jobs on every `pull_request` and `push` to `main`:
+
+| Job | Runner | Steps |
+| --- | --- | --- |
+| `build_and_unit` | `ubuntu-latest` | `npm ci` → Jest with coverage → production build → upload `build/` and `coverage/` artifacts |
+| `e2e` | Playwright Docker (`v1.61.1-jammy`) | Download `build/` → `npm run test:e2e:ci` → upload Playwright report |
+| `deploy` | `ubuntu-latest` | Embed report in `build/reports/` → deploy to GitHub Pages (only on successful `main` push) |
+
+E2E tests run against the production `build/` (not the CRA dev server), matching the deployed GitHub Pages subpath.
+
+### CI artifacts and reports
+
+Every workflow run publishes downloadable artifacts and a job summary on the Actions run page:
+
+| Artifact | Job | Contents |
+| --- | --- | --- |
+| `coverage` | `build_and_unit` | Jest HTML and LCOV report (`coverage/`) |
+| `playwright-report-<run_id>` | `e2e` | Playwright HTML report and test traces |
+| `build` | `build_and_unit` | Production build passed to E2E and deploy |
+
+- **Jest coverage %** — shown in the `build_and_unit` job summary
+- **Playwright report (live)** — embedded at `/reports/` after a successful `main` deploy (see Live URLs below)
+- **Failed runs** — download the Playwright report from **Artifacts** on the run page; deploy is skipped until all jobs pass
 
 ### Live URLs
 
 | Resource | URL |
 | --- | --- |
-| App | https://solcala.github.io/cc_jammming_music/ |
-| Playwright report (after successful deploy) | https://solcala.github.io/cc_jammming_music/reports/index.html |
+| App | [https://solcala.github.io/cc_jammming_music/](https://solcala.github.io/cc_jammming_music/) |
+| Playwright report (after successful deploy) | [https://solcala.github.io/cc_jammming_music/reports/index.html](https://solcala.github.io/cc_jammming_music/reports/index.html) |
 
-On failed runs, the Playwright report is still available from the **Artifacts** section of the GitHub Actions run page.
+Open `coverage/lcov-report/index.html` locally after `npm run test:coverage` for the Jest HTML report.
 
 ### Spotify configuration for production
 

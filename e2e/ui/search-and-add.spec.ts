@@ -24,6 +24,18 @@ test.describe('Search and add to playlist', () => {
     await expect(page.getByTestId('track-add-track-1')).toBeVisible();
   });
 
+  test('adds multiple tracks to the playlist panel', async ({ page }) => {
+    await searchTracks(page);
+    await page.getByTestId('track-add-track-1').click();
+    await page.getByTestId('track-add-track-2').click();
+
+    const playlist = page.getByTestId('playlist-section');
+    await expect(playlist.getByTestId('track-remove-track-1')).toBeVisible();
+    await expect(playlist.getByTestId('track-remove-track-2')).toBeVisible();
+    await expect(playlist.getByTestId('track-name-track-1')).toHaveText(mockTracks[0].name);
+    await expect(playlist.getByTestId('track-name-track-2')).toHaveText(mockTracks[1].name);
+  });
+
   test('shows empty state when search returns no tracks', async ({ page }) => {
     await page.route('**/api.spotify.com/v1/search*', async (route) => {
       await route.fulfill({

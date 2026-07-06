@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SearchBar from './SearchBar';
@@ -67,4 +67,23 @@ it('shows Searching... while a search is in progress', () => {
   );
   expect(screen.getByTestId('search-button')).toHaveTextContent('Searching...');
   expect(screen.getByTestId('search-button')).toBeDisabled();
+});
+
+it('clears search error when user types in the input', async () => {
+  const user = userEvent.setup();
+
+  function SearchBarWrapper() {
+    const [searchBy, setSearchBy] = useState('');
+    return (
+      <SearchBar search={() => {}} searchBy={searchBy} setSearchBy={setSearchBy} />
+    );
+  }
+
+  render(<SearchBarWrapper />);
+
+  await user.click(screen.getByTestId('search-button'));
+  expect(screen.getByTestId('search-error')).toBeInTheDocument();
+
+  await user.type(screen.getByTestId('search-by-input'), 'a');
+  expect(screen.queryByTestId('search-error')).not.toBeInTheDocument();
 });

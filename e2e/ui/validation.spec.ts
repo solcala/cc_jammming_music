@@ -7,6 +7,14 @@ test.describe('Form validation', () => {
     await expect(page.getByTestId('search-error')).toHaveText('Please enter a song title');
   });
 
+  test('clears search error after typing in the input', async ({ page }) => {
+    await page.getByTestId('search-button').click();
+    await expect(page.getByTestId('search-error')).toBeVisible();
+
+    await page.getByTestId('search-by-input').fill('t');
+    await expect(page.getByTestId('search-error')).not.toBeVisible();
+  });
+
   test('shows inline error when saving without a playlist title', async ({ page }) => {
     await searchAndAddFirstTrack(page);
     await page.getByTestId('save-playlist-button').click();
