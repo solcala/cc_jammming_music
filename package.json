@@ -92,8 +92,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
-    "eslint": "^8.57.1",
-    "eslint-plugin-testing-library": "^6.5.0",
+    "eslint": "^10.6.0",
+    "eslint-plugin-testing-library": "^7.16.2",
     "patch-package": "^8.0.0",
     "serve": "^14.2.4"
   }
