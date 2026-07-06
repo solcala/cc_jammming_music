@@ -121,13 +121,14 @@ The project deploys to GitHub Pages via a unified CI workflow ([`.github/workflo
 
 ### CI pipeline
 
-The workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) runs four jobs on every `pull_request` and `push` to `main`:
+The workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) runs five jobs on every `pull_request` and `push` to `main`:
 
 | Job | Runner | Steps |
 | --- | --- | --- |
 | `build_and_unit` | `ubuntu-latest` | `npm ci` → Jest with coverage → production build → upload `build/`, `coverage/`, and test summary artifacts |
 | `e2e` | Playwright Docker (`v1.61.1-jammy`) | Download `build/` → `npm run test:e2e:ci` → upload Playwright report and e2e summary |
 | `deploy` | `ubuntu-latest` | Embed report in `build/reports/` → deploy to GitHub Pages (only on successful `main` push) → upload deploy summary |
+| `publish_failure_traces` | `ubuntu-latest` | On e2e failure only: copy `trace.zip` files to `failures/<run_id>/` on GitHub Pages so trace viewer links work without auth |
 | `notify` | `ubuntu-latest` | Merge job summaries → post Slack notification (`if: always()`) |
 
 E2E tests run against the production `build/` (not the CRA dev server), matching the deployed GitHub Pages subpath.
@@ -157,13 +158,14 @@ Open `coverage/lcov-report/index.html` locally after `npm run test:coverage` for
 
 ### Slack CI notifications
 
-After each workflow run, the `notify` job merges results from `build_and_unit`, `e2e`, and `deploy` and posts a summary to Slack (when configured).
+After each workflow run, the `notify` job merges results from `build_and_unit`, `e2e`, and `deploy` (waiting for `publish_failure_traces` when e2e fails) and posts a summary to Slack (when configured).
 
 #### **What gets posted**
 
 - Green or red header based on overall pass/fail
 - Branch, event type, and total passed / failed / skipped counts
 - Per-job breakdown: Jest unit tests (with line coverage %), Playwright E2E tests, and deploy status
+- On Playwright E2E failure: failed test names, links to open traces in [trace.playwright.dev](https://trace.playwright.dev), and a link to download the HTML report artifact from the Actions run (traces are published to `https://solcala.github.io/cc_jammming_music/failures/<run_id>/` by the `publish_failure_traces` job)
 - Link to the GitHub Actions run
 
 On pull requests, deploy is skipped — the Slack message still reports test results with deploy marked as skipped.

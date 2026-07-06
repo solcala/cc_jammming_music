@@ -145,6 +145,36 @@ function buildBlocks(report) {
     });
   }
 
+  const e2eJob = report.jobs?.e2e;
+  if (e2eJob && readNumber(e2eJob.failed) > 0) {
+    const failureLines = [];
+
+    if (Array.isArray(e2eJob.failedTests) && e2eJob.failedTests.length > 0) {
+      failureLines.push('*Failed Playwright tests*');
+      failureLines.push(...e2eJob.failedTests.map((title) => `• ${title}`));
+    }
+
+    if (Array.isArray(e2eJob.traceViewerUrls) && e2eJob.traceViewerUrls.length > 0) {
+      failureLines.push('*Trace viewer*');
+      failureLines.push(
+        ...e2eJob.traceViewerUrls.map(
+          (url, index) => `<${url}|Open trace ${index + 1} in Playwright Trace Viewer>`,
+        ),
+      );
+    }
+
+    if (e2eJob.htmlReportUrl) {
+      failureLines.push(`<${e2eJob.htmlReportUrl}|Download Playwright report artifact>`);
+    }
+
+    if (failureLines.length > 0) {
+      blocks.push({
+        type: 'section',
+        text: { type: 'mrkdwn', text: failureLines.join('\n') },
+      });
+    }
+  }
+
   if (report.runUrl) {
     blocks.push({
       type: 'section',

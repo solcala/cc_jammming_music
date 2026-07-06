@@ -143,6 +143,8 @@ jobs:
           cp test-results/e2e.json ci-summary/e2e.json
         env:
           PLAYWRIGHT_STEP_OUTCOME: ${{ steps.playwright.outcome }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Upload e2e summary artifact
         if: always()
@@ -245,8 +247,51 @@ jobs:
           path: ci-summary/deploy.json
           retention-days: 7
 
+  publish_failure_traces:
+    needs: e2e
+    if: failure() && needs.e2e.result == 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Playwright report
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: e2e-output
+
+      - name: Checkout GitHub Pages site
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-site
+
+      - name: Copy failure traces
+        id: copy_traces
+        run: |
+          DEST="gh-pages-site/failures/${{ github.run_id }}"
+          mkdir -p "$DEST"
+          if [ -d e2e-output/test-results ]; then
+            find e2e-output/test-results -name 'trace.zip' -print0 | while IFS= read -r -d '' trace; do
+              name="$(basename "$(dirname "$trace")").zip"
+              cp "$trace" "$DEST/$name"
+            done
+          fi
+          count=$(find "$DEST" -name '*.zip' 2>/dev/null | wc -l | tr -d ' ')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "Copied $count trace archive(s) to failures/${{ github.run_id }}/"
+
+      - name: Deploy failure traces to GitHub Pages
+        if: steps.copy_traces.outputs.count != '0'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./gh-pages-site
+
   notify:
-    needs: [build_and_unit, e2e, deploy]
+    needs: [build_and_unit, e2e, deploy, publish_failure_traces]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -288,6 +333,7 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: node scripts/merge-ci-report.js
 
       - name: Send Slack notification

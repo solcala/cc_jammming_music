@@ -10,14 +10,25 @@
       "failed": 0,
       "skipped": 0,
       "durationMs": 11000,
-      "coverage": { "lines": 79.5 }
+      "coverage": {
+        "lines": 79.5
+      }
     },
     "e2e": {
       "status": "failure",
       "passed": 22,
       "failed": 2,
       "skipped": 0,
-      "durationMs": 52000
+      "durationMs": 52000,
+      "failedTests": [
+        "ui/search \u203a shows results after search",
+        "api/save-playlist \u203a surfaces save failure message"
+      ],
+      "traceViewerUrls": [
+        "https://trace.playwright.dev/?trace=https%3A%2F%2Fsolcala.github.io%2Fcc_jammming_music%2Ffailures%2F987654321%2Fui-search-shows-results-after-search-chromium.zip",
+        "https://trace.playwright.dev/?trace=https%3A%2F%2Fsolcala.github.io%2Fcc_jammming_music%2Ffailures%2F987654321%2Fapi-save-playlist-surfaces-save-failure-message-chromium.zip"
+      ],
+      "htmlReportUrl": "https://github.com/solcala/cc_jammming_music/actions/runs/987654321#artifacts"
     },
     "deploy": {
       "status": "skipped",
