@@ -111,7 +111,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build
-          path: .
+          path: build
 
       - name: Run Playwright tests
         run: npm run test:e2e:ci
@@ -148,7 +148,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build
-          path: .
+          path: build
 
       - name: Download Playwright report
         uses: actions/download-artifact@v4
