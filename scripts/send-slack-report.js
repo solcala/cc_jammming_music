@@ -78,7 +78,7 @@ function aggregateTotals(report) {
       acc.failed += readNumber(job.failed);
       acc.skipped += readNumber(job.skipped);
       acc.durationMs += readNumber(job.durationMs);
-      if (job.status && job.status !== 'success') {
+      if (job.status && job.status !== 'success' && job.status !== 'skipped') {
         acc.failedJobs += 1;
       }
       return acc;

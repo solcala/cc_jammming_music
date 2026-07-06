@@ -126,7 +126,26 @@ jobs:
           path: build
 
       - name: Run Playwright tests
+        id: playwright
         run: npm run test:e2e:ci
+
+      - name: Write Playwright CI summary for Slack
+        if: always()
+        run: |
+          node scripts/write-playwright-ci-summary.js
+          mkdir -p ci-summary
+          cp test-results/e2e.json ci-summary/e2e.json
+        env:
+          PLAYWRIGHT_STEP_OUTCOME: ${{ steps.playwright.outcome }}
+
+      - name: Upload e2e summary artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-e2e
+          path: ci-summary/e2e.json
+          retention-days: 7
+
 
       - name: Upload Playwright report
         if: always()
@@ -188,7 +207,76 @@ jobs:
 
       - name: Deploy to GitHub Pages
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
+
+      - name: Write deploy CI summary for Slack
+        if: always()
+        run: |
+          node scripts/write-deploy-ci-summary.js
+          mkdir -p ci-summary
+          cp test-results/deploy.json ci-summary/deploy.json
+        env:
+          DEPLOYED: ${{ steps.pages.outcome == 'success' && 'true' || 'false' }}
+          JOB_FAILED: ${{ failure() && 'true' || 'false' }}
+
+      - name: Upload deploy summary artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-deploy
+          path: ci-summary/deploy.json
+          retention-days: 7
+
+  notify:
+    needs: [build_and_unit, e2e, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download build_and_unit summary
+        if: needs.build_and_unit.result != 'cancelled'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-build-and-unit
+          path: ci-reports/build_and_unit
+
+      - name: Download e2e summary
+        if: needs.e2e.result != 'cancelled'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-e2e
+          path: ci-reports/e2e
+
+      - name: Download deploy summary
+        if: needs.deploy.result != 'cancelled'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-deploy
+          path: ci-reports/deploy
+
+      - name: Merge CI report
+        env:
+          BUILD_AND_UNIT_RESULT: ${{ needs.build_and_unit.result }}
+          E2E_RESULT: ${{ needs.e2e.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/merge-ci-report.js
+
+      - name: Send Slack notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: node scripts/send-slack-report.js --report test-results/ci-report.json

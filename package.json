@@ -21,7 +21,7 @@
     "deploy": "gh-pages -d build",
     "test": "react-scripts test",
     "test:e2e": "playwright test",
-    "test:e2e:ci": "CI_SERVE_BUILD=true playwright test",
+    "test:e2e:ci": "mkdir -p test-results && CI_SERVE_BUILD=true playwright test",
     "test:api": "playwright test e2e/api",
     "test:ui": "playwright test e2e/ui",
     "test:e2e:ui": "playwright test --ui",
