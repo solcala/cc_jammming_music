@@ -50,6 +50,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `npm run test:e2e` | Run Playwright E2E tests against the CRA dev server |
 | `npm run test:e2e:ci` | Run Playwright E2E tests against the production `build/` |
 | `npm run test:coverage` | Run Jest unit tests with coverage report |
+| `npm run test:all` | Run Jest coverage, production build, and Playwright CI tests (full local check) |
+| `npm run lint` | Run ESLint on `src/` and `e2e/` |
 | `npm run test:api` | Run Playwright API tests only |
 | `npm run test:ui` | Run Playwright UI tests only |
 | `npm run test:e2e:ui` | Open the Playwright test UI |
@@ -96,6 +98,18 @@ npm run test:coverage
 ```
 
 Report output is written to `coverage/`.
+
+**Node version note:** CI uses Node 20. Jest coverage works reliably on Node 20. On Node 24, coverage collection may fail due to a `babel-plugin-istanbul` / `glob` compatibility issue with this Create React App setup (the repo pins `glob@^10` for security). Use Node 20 locally for `npm run test:coverage` if you hit that error.
+
+### Full local test suite
+
+Runs the same checks as CI before Playwright (coverage + build + e2e against production `build/`):
+
+```bash
+npm run test:all
+```
+
+This runs `test:coverage`, then `build`, then `test:e2e:ci`.
 
 ## Deployment
 
