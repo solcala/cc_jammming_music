@@ -173,21 +173,25 @@ jobs:
 
     steps:
       - name: Checkout repository
+        id: checkout
         uses: actions/checkout@v4
 
       - name: Download build artifact
+        id: download_build
         uses: actions/download-artifact@v4
         with:
           name: build
           path: build
 
       - name: Download Playwright report
+        id: download_playwright
         uses: actions/download-artifact@v4
         with:
           name: playwright-report-${{ github.run_id }}
           path: .
 
       - name: Embed Playwright report in build output
+        id: embed
         run: mkdir -p build/reports && cp -r playwright-report/* build/reports/
 
       - name: Publish workflow summary
@@ -220,8 +224,12 @@ jobs:
           mkdir -p ci-summary
           cp test-results/deploy.json ci-summary/deploy.json
         env:
-          DEPLOYED: ${{ steps.pages.outcome == 'success' && 'true' || 'false' }}
-          JOB_FAILED: ${{ failure() && 'true' || 'false' }}
+          DEPLOYED: ${{ steps.pages.conclusion == 'success' && 'true' || 'false' }}
+          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          DOWNLOAD_BUILD_OUTCOME: ${{ steps.download_build.outcome }}
+          DOWNLOAD_PLAYWRIGHT_OUTCOME: ${{ steps.download_playwright.outcome }}
+          EMBED_OUTCOME: ${{ steps.embed.outcome }}
+          PAGES_OUTCOME: ${{ steps.pages.outcome }}
 
       - name: Upload deploy summary artifact
         if: always()
