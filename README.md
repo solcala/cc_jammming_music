@@ -103,13 +103,14 @@ The project deploys to GitHub Pages via a unified CI workflow ([`.github/workflo
 
 ### CI pipeline
 
-The workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) runs three jobs on every `pull_request` and `push` to `main`:
+The workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) runs four jobs on every `pull_request` and `push` to `main`:
 
 | Job | Runner | Steps |
 | --- | --- | --- |
-| `build_and_unit` | `ubuntu-latest` | `npm ci` → Jest with coverage → production build → upload `build/` and `coverage/` artifacts |
-| `e2e` | Playwright Docker (`v1.61.1-jammy`) | Download `build/` → `npm run test:e2e:ci` → upload Playwright report |
-| `deploy` | `ubuntu-latest` | Embed report in `build/reports/` → deploy to GitHub Pages (only on successful `main` push) |
+| `build_and_unit` | `ubuntu-latest` | `npm ci` → Jest with coverage → production build → upload `build/`, `coverage/`, and test summary artifacts |
+| `e2e` | Playwright Docker (`v1.61.1-jammy`) | Download `build/` → `npm run test:e2e:ci` → upload Playwright report and e2e summary |
+| `deploy` | `ubuntu-latest` | Embed report in `build/reports/` → deploy to GitHub Pages (only on successful `main` push) → upload deploy summary |
+| `notify` | `ubuntu-latest` | Merge job summaries → post Slack notification (`if: always()`) |
 
 E2E tests run against the production `build/` (not the CRA dev server), matching the deployed GitHub Pages subpath.
 
@@ -135,6 +136,37 @@ Every workflow run publishes downloadable artifacts and a job summary on the Act
 | Playwright report (after successful deploy) | [https://solcala.github.io/cc_jammming_music/reports/index.html](https://solcala.github.io/cc_jammming_music/reports/index.html) |
 
 Open `coverage/lcov-report/index.html` locally after `npm run test:coverage` for the Jest HTML report.
+
+### Slack CI notifications
+
+After each workflow run, the `notify` job merges results from `build_and_unit`, `e2e`, and `deploy` and posts a summary to Slack (when configured).
+
+#### **What gets posted**
+
+- Green or red header based on overall pass/fail
+- Branch, event type, and total passed / failed / skipped counts
+- Per-job breakdown: Jest unit tests (with line coverage %), Playwright E2E tests, and deploy status
+- Link to the GitHub Actions run
+
+On pull requests, deploy is skipped — the Slack message still reports test results with deploy marked as skipped.
+
+#### **One-time setup**
+
+1. In Slack, create an [Incoming Webhook](https://api.slack.com/messaging/webhooks) for your channel.
+2. In GitHub, go to **Settings → Secrets and variables → Actions** and add a repository secret named `SLACK_WEBHOOK_URL` with the webhook URL.
+
+If the secret is not set, the `notify` job logs a warning and exits successfully — CI is not blocked.
+
+##### **Local dry-run**
+
+Use a sample report to preview the Slack message without running the full pipeline:
+
+```bash
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL \
+  node scripts/send-slack-report.js --report scripts/sample-slack-report.json
+```
+
+A failure example is in [`scripts/sample-slack-report-failure.json`](scripts/sample-slack-report-failure.json). You can also set `SLACK_WEBHOOK_URL` in `.env` for local use (see [`.env.example`](.env.example)); never commit a real webhook URL.
 
 ### Spotify configuration for production
 
