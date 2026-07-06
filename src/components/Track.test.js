@@ -1,9 +1,10 @@
 import React from 'react';
 import { screen, render } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import Track from './Track';
 
-const testingTrack = { name: 'Flowers', artist: 'Miley Cyrus' };
+const testingTrack = { id: 'track-1', name: 'Flowers', artist: 'Miley Cyrus' };
 
 it('Track is displayed with add button', () => {
   render(<Track
@@ -37,7 +38,7 @@ it('should displayed track name', () => {
   expect(heading).toHaveTextContent(testingTrack.name)
 })
 
-it('should displayed track name', () => {
+it('should displayed track artist', () => {
   render(<Track track={testingTrack}
     addRemoveTrack={false}
     addToPlaylist={() => { }}
@@ -46,3 +47,37 @@ it('should displayed track name', () => {
   let textArtist = screen.getByRole('paragraph');
   expect(textArtist).toHaveTextContent(testingTrack.artist)
 })
+
+it('calls addToPlaylist when + is clicked', async () => {
+  const addToPlaylist = jest.fn();
+  const user = userEvent.setup();
+
+  render(
+    <Track
+      track={testingTrack}
+      addRemoveTrack={true}
+      addToPlaylist={addToPlaylist}
+      removeFromPlaylist={() => {}}
+    />,
+  );
+
+  await user.click(screen.getByTestId('track-add-track-1'));
+  expect(addToPlaylist).toHaveBeenCalledWith(testingTrack);
+});
+
+it('calls removeFromPlaylist when - is clicked', async () => {
+  const removeFromPlaylist = jest.fn();
+  const user = userEvent.setup();
+
+  render(
+    <Track
+      track={testingTrack}
+      addRemoveTrack={false}
+      addToPlaylist={() => {}}
+      removeFromPlaylist={removeFromPlaylist}
+    />,
+  );
+
+  await user.click(screen.getByTestId('track-remove-track-1'));
+  expect(removeFromPlaylist).toHaveBeenCalledWith(testingTrack);
+});

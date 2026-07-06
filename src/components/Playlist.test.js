@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { screen, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
@@ -60,4 +60,31 @@ it('shows Saving... while a save is in progress', () => {
   render(<Playlist {...defaultProps} isSaving={true} />);
   expect(screen.getByTestId('save-playlist-button')).toHaveTextContent('Saving...');
   expect(screen.getByTestId('save-playlist-button')).toBeDisabled();
+});
+
+it('clears validation error when playlist title changes', async () => {
+  const user = userEvent.setup();
+  const tracks = [
+    { id: '1', name: 'My Song', artist: 'Artist X', album: 'Album X', uri: 'spotify:track:1' },
+  ];
+
+  function PlaylistWrapper() {
+    const [playlistName, setPlaylistName] = useState('');
+    return (
+      <Playlist
+        {...defaultProps}
+        playlistTracks={tracks}
+        playlistName={playlistName}
+        setPlaylistName={setPlaylistName}
+      />
+    );
+  }
+
+  render(<PlaylistWrapper />);
+
+  await user.click(screen.getByTestId('save-playlist-button'));
+  expect(screen.getByTestId('playlist-validation-error')).toBeInTheDocument();
+
+  await user.type(screen.getByTestId('playlist-title-input'), 'My Playlist');
+  expect(screen.queryByTestId('playlist-validation-error')).not.toBeInTheDocument();
 });
