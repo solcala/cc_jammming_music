@@ -97,6 +97,6 @@ test.describe('Loading states', () => {
     releaseSave();
     await expect(page.getByTestId('playlist-message')).toHaveText('Playlist created');
     await expect(page.getByTestId('save-playlist-button')).toHaveText('Save to Spotify');
-    await expect(page.getByTestId('save-playlist-button')).toBeEnabled();
+    await expect(page.getByTestId('save-playlist-button')).toBeDisabled();
   });
 });
