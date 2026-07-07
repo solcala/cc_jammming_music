@@ -196,13 +196,13 @@ For live Spotify login on the deployed app, add a GitHub repository secret named
 
 Use a **public** Spotify app (no client secret). PKCE is designed for browser-only clients; the same `REACT_APP_SPOTIFY_CLIENT_ID` and `REACT_APP_REDIRECT_URI` variables apply after migration.
 
-## Spotify authentication (PKCE migration)
+## Spotify authentication (PKCE)
 
-The app currently uses Spotify's **implicit grant** (`response_type=token`), which returns an access token in the URL hash. Spotify has deprecated that flow for new applications.
+The app uses Spotify **Authorization Code with PKCE** — the recommended pattern for browser-only SPAs. No client secret is stored or sent; only the public client ID is used.
 
-Phase 4 migrates to **Authorization Code with PKCE** — Spotify's recommended pattern for client-side SPAs. No client secret is stored or sent; only the public client ID is used.
+After login, Spotify redirects to `REACT_APP_REDIRECT_URI?code=...` (query string). The app exchanges that code for an access token via [`src/util/pkce.ts`](src/util/pkce.ts) and [`src/util/Spotify.ts`](src/util/Spotify.ts).
 
-### Planned PKCE flow
+### PKCE flow
 
 ```mermaid
 sequenceDiagram
@@ -232,7 +232,7 @@ sequenceDiagram
 | 6 | Store the access token in memory; optionally persist refresh token for silent renewal in a later iteration. |
 | 7 | Replace the URL with `PUBLIC_URL` so the authorization code is not left in the address bar. |
 
-Low-level helpers live in [`src/util/pkce.ts`](src/util/pkce.ts) (`generateCodeVerifier`, `generateCodeChallenge`, `buildAuthorizeUrl`, `parseAuthorizationCode`, `exchangeAuthorizationCode`, and sessionStorage helpers). [`src/util/Spotify.ts`](src/util/Spotify.ts) will adopt this flow in a later batch; until then, implicit grant remains in use at runtime.
+Low-level helpers live in [`src/util/pkce.ts`](src/util/pkce.ts). [`src/util/Spotify.ts`](src/util/Spotify.ts) uses them for login, token exchange, and API calls.
 
 ### Spotify Dashboard checklist
 
@@ -243,7 +243,7 @@ Low-level helpers live in [`src/util/pkce.ts`](src/util/pkce.ts) (`generateCodeV
 ## Tech Stack
 
 - React 18 (Create React App)
-- Spotify Web API (migrating from Implicit Grant to Authorization Code + PKCE)
+- Spotify Web API (Authorization Code + PKCE)
 - Jest + React Testing Library (unit tests)
 - Playwright (end-to-end tests)
 - GitHub Actions (CI/CD)
