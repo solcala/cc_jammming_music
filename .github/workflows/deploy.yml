@@ -126,7 +126,7 @@ jobs:
         run: npm run lint
 
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: build
           path: build
@@ -186,14 +186,14 @@ jobs:
 
       - name: Download build artifact
         id: download_build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: build
           path: build
 
       - name: Download Playwright report
         id: download_playwright
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: playwright-report-${{ github.run_id }}
           path: .
@@ -257,7 +257,7 @@ jobs:
 
     steps:
       - name: Download Playwright report
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: playwright-report-${{ github.run_id }}
           path: e2e-output
@@ -303,7 +303,7 @@ jobs:
       - name: Download build_and_unit summary
         if: needs.build_and_unit.result != 'cancelled'
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: test-results-build-and-unit
           path: ci-reports/build_and_unit
@@ -311,7 +311,7 @@ jobs:
       - name: Download e2e summary
         if: needs.e2e.result != 'cancelled'
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: test-results-e2e
           path: ci-reports/e2e
@@ -319,7 +319,7 @@ jobs:
       - name: Download deploy summary
         if: needs.deploy.result != 'cancelled'
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: test-results-deploy
           path: ci-reports/deploy
