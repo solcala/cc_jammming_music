@@ -1,17 +1,29 @@
 import React, { useState } from 'react';
 import styles from './SearchBar.module.css';
 
-function SearchBar({ search, searchBy, setSearchBy, isSearching = false }) {
+export interface SearchBarProps {
+  search: () => void;
+  searchBy: string;
+  setSearchBy: (value: string) => void;
+  isSearching?: boolean;
+}
+
+function SearchBar({
+  search,
+  searchBy,
+  setSearchBy,
+  isSearching = false,
+}: SearchBarProps) {
   const [searchError, setSearchError] = useState('');
 
-  const onChangeSearchBy = (e) => {
+  const onChangeSearchBy = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchBy(e.target.value);
     if (searchError) {
       setSearchError('');
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (searchBy === '') {
       setSearchError('Please enter a song title');
@@ -22,7 +34,11 @@ function SearchBar({ search, searchBy, setSearchBy, isSearching = false }) {
   };
 
   return (
-    <form className={styles.searchBar} onSubmit={handleSubmit} data-testid="search-form">
+    <form
+      className={styles.searchBar}
+      onSubmit={handleSubmit}
+      data-testid="search-form"
+    >
       <label htmlFor="search-by-input" className={styles.searchLabel}>
         Search by song title
       </label>
