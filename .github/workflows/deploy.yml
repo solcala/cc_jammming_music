@@ -36,6 +36,9 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      - name: Run TypeScript check
+        run: npm run typecheck
+
       - name: Run Vitest unit tests with coverage
         run: npm run test:coverage
 
@@ -124,6 +127,9 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
+
+      - name: Run TypeScript check
+        run: npm run typecheck
 
       - name: Download build artifact
         uses: actions/download-artifact@v8
