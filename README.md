@@ -11,46 +11,48 @@ A React web application that lets you search the Spotify catalog, build custom p
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 18+ (Node 20 recommended for CI parity)
 - A [Spotify Developer](https://developer.spotify.com/dashboard) application with a registered redirect URI
 
 ## Setup
 
 1. Clone the repository and install dependencies:
 
-```bash
-git clone https://github.com/solcala/cc_jammming_music.git
-cd cc_jammming_music
-npm install
-```
+    ```bash
+    git clone https://github.com/solcala/cc_jammming_music.git
+    cd cc_jammming_music
+    npm install
+    ```
 
-2.Copy the environment template and fill in your Spotify credentials:
+2. Copy the environment template and fill in your Spotify credentials:
 
-```bash
-cp .env.example .env
-```
+    ```bash
+    cp .env.example .env
+    ```
 
-Edit `.env` with your `REACT_APP_SPOTIFY_CLIENT_ID` and `REACT_APP_REDIRECT_URI`.
+    Edit `.env` with your `VITE_SPOTIFY_CLIENT_ID` and `VITE_REDIRECT_URI`.
 
-3.Start the development server:
+3. Start the development server:
 
-```bash
-npm start
-```
+    ```bash
+    npm start
+    ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000/cc_jammming_music/](http://localhost:3000/cc_jammming_music/) in your browser.
 
 ## Available Scripts
 
 | Script | Description |
 | --- | --- |
-| `npm start` | Start the development server |
-| `npm test` | Run Jest unit tests in watch mode |
-| `npm run build` | Build for production to `build/` |
-| `npm run test:e2e` | Run Playwright E2E tests against the CRA dev server |
-| `npm run test:e2e:ci` | Run Playwright E2E tests against the production `build/` |
-| `npm run test:coverage` | Run Jest unit tests with coverage report |
-| `npm run test:all` | Run Jest coverage, production build, and Playwright CI tests (full local check) |
+| `npm start` | Start the Vite development server |
+| `npm test` | Run Vitest unit tests in watch mode |
+| `npm run build` | Build for production to `dist/` |
+| `npm run preview` | Preview the production build locally |
+| `npm run test:e2e` | Run Playwright E2E tests against the Vite dev server |
+| `npm run test:e2e:ci` | Build for E2E, then run Playwright against `dist/` |
+| `npm run test:e2e:serve` | Run Playwright against an existing `dist/` (CI uses this after downloading the build artifact) |
+| `npm run test:coverage` | Run Vitest unit tests with coverage report |
+| `npm run test:all` | Run Vitest coverage, production build, and Playwright CI tests (full local check) |
 | `npm run lint` | Run ESLint on `src/` and `e2e/` |
 | `npm run test:api` | Run Playwright API tests only |
 | `npm run test:ui` | Run Playwright UI tests only |
@@ -58,7 +60,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Testing
 
-### Unit Tests (Jest)
+### Unit Tests (Vitest)
 
 ```bash
 npm test
@@ -68,17 +70,16 @@ npm test
 
 Playwright tests mock all Spotify API calls, so no credentials are required.
 
-**Local development** (CRA dev server):
+**Local development** (Vite dev server at `/cc_jammming_music/`):
 
 ```bash
 npx playwright install chromium
 npm run test:e2e
 ```
 
-**CI / production build** (serves `build/` at the GitHub Pages subpath):
+**CI / production build** (serves `dist/` at the GitHub Pages subpath):
 
 ```bash
-npm run build
 npm run test:e2e:ci
 ```
 
@@ -99,17 +100,17 @@ npm run test:coverage
 
 Report output is written to `coverage/`.
 
-**Node version note:** CI uses Node 20. Jest coverage works reliably on Node 20. On Node 24, coverage collection may fail due to a `babel-plugin-istanbul` / `glob` compatibility issue with this Create React App setup (the repo pins `glob@^10` for security). Use Node 20 locally for `npm run test:coverage` if you hit that error.
+**Node version note:** CI uses Node 20. Vitest coverage works reliably on Node 20. On Node 24, if coverage collection fails due to a `test-exclude` / `minimatch` issue, use Node 20 locally for `npm run test:coverage`.
 
 ### Full local test suite
 
-Runs the same checks as CI before Playwright (coverage + build + e2e against production `build/`):
+Runs the same checks as CI before Playwright (coverage + build + e2e against production `dist/`):
 
 ```bash
 npm run test:all
 ```
 
-This runs `test:coverage`, then `build`, then `test:e2e:ci`.
+This runs `test:coverage`, then `build:e2e`, then `test:e2e:serve`.
 
 ### Dependency updates
 
@@ -125,13 +126,13 @@ The workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) ru
 
 | Job | Runner | Steps |
 | --- | --- | --- |
-| `build_and_unit` | `ubuntu-latest` | `npm ci` → Jest with coverage → production build → upload `build/`, `coverage/`, and test summary artifacts |
-| `e2e` | Playwright Docker (`v1.61.1-jammy`) | Download `build/` → `npm run test:e2e:ci` → upload Playwright report and e2e summary |
-| `deploy` | `ubuntu-latest` | Embed report in `build/reports/` → deploy to GitHub Pages (only on successful `main` push) → upload deploy summary |
+| `build_and_unit` | `ubuntu-latest` | `npm ci` → Vitest with coverage → Vite production build → upload `dist/`, `coverage/`, and test summary artifacts |
+| `e2e` | Playwright Docker (`v1.61.1-jammy`) | Download `dist/` → `npm run test:e2e:serve` → upload Playwright report and e2e summary |
+| `deploy` | `ubuntu-latest` | Embed report in `dist/reports/` → deploy to GitHub Pages (only on successful `main` push) → upload deploy summary |
 | `publish_failure_traces` | `ubuntu-latest` | On e2e failure only: copy `trace.zip` files to `failures/<run_id>/` on GitHub Pages so trace viewer links work without auth |
 | `notify` | `ubuntu-latest` | Merge job summaries → post Slack notification (`if: always()`) |
 
-E2E tests run against the production `build/` (not the CRA dev server), matching the deployed GitHub Pages subpath.
+E2E tests run against the production `dist/` (not the Vite dev server), matching the deployed GitHub Pages subpath.
 
 ### CI artifacts and reports
 
@@ -139,11 +140,11 @@ Every workflow run publishes downloadable artifacts and a job summary on the Act
 
 | Artifact | Job | Contents |
 | --- | --- | --- |
-| `coverage` | `build_and_unit` | Jest HTML and LCOV report (`coverage/`) |
+| `coverage` | `build_and_unit` | Vitest HTML and LCOV report (`coverage/`) |
 | `playwright-report-<run_id>` | `e2e` | Playwright HTML report and test traces |
-| `build` | `build_and_unit` | Production build passed to E2E and deploy |
+| `dist` | `build_and_unit` | Production build passed to E2E and deploy |
 
-- **Jest coverage %** — shown in the `build_and_unit` job summary
+- **Unit test coverage %** — shown in the `build_and_unit` job summary
 - **Playwright report (live)** — embedded at `/reports/` after a successful `main` deploy (see Live URLs below)
 - **Failed runs** — download the Playwright report from **Artifacts** on the run page; deploy is skipped until all jobs pass
 
@@ -154,7 +155,7 @@ Every workflow run publishes downloadable artifacts and a job summary on the Act
 | App | [https://solcala.github.io/cc_jammming_music/](https://solcala.github.io/cc_jammming_music/) |
 | Playwright report (after successful deploy) | [https://solcala.github.io/cc_jammming_music/reports/index.html](https://solcala.github.io/cc_jammming_music/reports/index.html) |
 
-Open `coverage/lcov-report/index.html` locally after `npm run test:coverage` for the Jest HTML report.
+Open `coverage/lcov-report/index.html` locally after `npm run test:coverage` for the Vitest HTML report.
 
 ### Slack CI notifications
 
@@ -164,7 +165,7 @@ After each workflow run, the `notify` job merges results from `build_and_unit`, 
 
 - Green or red header based on overall pass/fail
 - Branch, event type, and total passed / failed / skipped counts
-- Per-job breakdown: Jest unit tests (with line coverage %), Playwright E2E tests, and deploy status
+- Per-job breakdown: unit tests (with line coverage %), Playwright E2E tests, and deploy status
 - On Playwright E2E failure: failed test names, links to open traces in [trace.playwright.dev](https://trace.playwright.dev), and a link to download the HTML report artifact from the Actions run (traces are published to `https://solcala.github.io/cc_jammming_music/failures/<run_id>/` by the `publish_failure_traces` job)
 - Link to the GitHub Actions run
 
@@ -190,25 +191,25 @@ A failure example is in [`scripts/sample-slack-report-failure.json`](scripts/sam
 
 ### Spotify configuration for production
 
-Set `REACT_APP_REDIRECT_URI` to `https://solcala.github.io/cc_jammming_music/` and register that exact URI in your [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
+Set `VITE_REDIRECT_URI` to `https://solcala.github.io/cc_jammming_music/` and register that exact URI in your [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
 
-For live Spotify login on the deployed app, add a GitHub repository secret named `REACT_APP_SPOTIFY_CLIENT_ID` with your Spotify client ID. Without it, the app still renders; only Spotify authentication will not work in production.
+For live Spotify login on the deployed app, add a GitHub repository secret named `VITE_SPOTIFY_CLIENT_ID` with your Spotify client ID. The workflow also accepts the legacy `REACT_APP_SPOTIFY_CLIENT_ID` secret name during migration. Without a client ID secret, the app still renders; only Spotify authentication will not work in production.
 
-Use a **public** Spotify app (no client secret). PKCE is designed for browser-only clients; the same `REACT_APP_SPOTIFY_CLIENT_ID` and `REACT_APP_REDIRECT_URI` variables apply.
+Use a **public** Spotify app (no client secret). PKCE is designed for browser-only clients; the same `VITE_SPOTIFY_CLIENT_ID` and `VITE_REDIRECT_URI` variables apply.
 
 #### Spotify Developer Dashboard setup
 
 1. Open [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and select your app (or create one).
 2. Under **Settings**, confirm the app is a **Web API** client. Do not embed a client secret in this SPA — PKCE uses the public client ID only.
-3. Under **Redirect URIs**, add every URL the app runs on. Each entry must match `REACT_APP_REDIRECT_URI` **exactly** (scheme, host, path, trailing slash):
+3. Under **Redirect URIs**, add every URL the app runs on. Each entry must match `VITE_REDIRECT_URI` **exactly** (scheme, host, path, trailing slash):
 
-| Environment | `REACT_APP_REDIRECT_URI` |
-| --- | --- |
-| Local dev (`npm start`) | `http://localhost:3000` |
-| GitHub Pages (production) | `https://solcala.github.io/cc_jammming_music/` |
+    | Environment | `VITE_REDIRECT_URI` |
+    | --- | --- |
+    | Local dev (`npm start`) | `http://localhost:3000/cc_jammming_music/` |
+    | GitHub Pages (production) | `https://solcala.github.io/cc_jammming_music/` |
 
 4. Save settings. Spotify redirects back with `?code=` in the query string after login — not `#access_token=` in the hash.
-5. Copy the **Client ID** into `.env` locally (`REACT_APP_SPOTIFY_CLIENT_ID`) and into the `REACT_APP_SPOTIFY_CLIENT_ID` GitHub Actions secret for production builds.
+5. Copy the **Client ID** into `.env` locally (`VITE_SPOTIFY_CLIENT_ID`) and into the `VITE_SPOTIFY_CLIENT_ID` GitHub Actions secret for production builds.
 
 Playwright e2e tests mock the `/api/token` exchange and bootstrap a PKCE callback URL — no real Spotify login is required in CI.
 
@@ -216,7 +217,7 @@ Playwright e2e tests mock the `/api/token` exchange and bootstrap a PKCE callbac
 
 The app uses Spotify **Authorization Code with PKCE** — the recommended pattern for browser-only SPAs. No client secret is stored or sent; only the public client ID is used.
 
-After login, Spotify redirects to `REACT_APP_REDIRECT_URI?code=...` (query string). The app exchanges that code for an access token via [`src/util/pkce.ts`](src/util/pkce.ts) and [`src/util/Spotify.ts`](src/util/Spotify.ts).
+After login, Spotify redirects to `VITE_REDIRECT_URI?code=...` (query string). The app exchanges that code for an access token via [`src/util/pkce.ts`](src/util/pkce.ts) and [`src/util/Spotify.ts`](src/util/Spotify.ts).
 
 ### PKCE flow
 
@@ -243,10 +244,10 @@ sequenceDiagram
 | 1 | Generate a random `code_verifier` (43–128 chars) and derive `code_challenge` = BASE64URL(SHA256(verifier)). |
 | 2 | Save `code_verifier` in `sessionStorage` under `spotify_pkce_code_verifier`. |
 | 3 | Redirect to `https://accounts.spotify.com/authorize` with `response_type=code`, `code_challenge_method=S256`, `code_challenge`, `client_id`, `redirect_uri`, and `scope=playlist-modify-public`. |
-| 4 | After login, Spotify redirects to `REACT_APP_REDIRECT_URI?code=...` (query string, not hash). |
+| 4 | After login, Spotify redirects to `VITE_REDIRECT_URI?code=...` (query string, not hash). |
 | 5 | Exchange the `code` at `https://accounts.spotify.com/api/token` with `grant_type=authorization_code`, `code_verifier`, `client_id`, and `redirect_uri`. |
 | 6 | Store the access token in memory; optionally persist refresh token for silent renewal in a later iteration. |
-| 7 | Replace the URL with `PUBLIC_URL` so the authorization code is not left in the address bar. |
+| 7 | Replace the URL with `import.meta.env.BASE_URL` so the authorization code is not left in the address bar. |
 
 Low-level helpers live in [`src/util/pkce.ts`](src/util/pkce.ts). [`src/util/Spotify.ts`](src/util/Spotify.ts) uses them for login, token exchange, and API calls.
 
@@ -254,13 +255,13 @@ Low-level helpers live in [`src/util/pkce.ts`](src/util/pkce.ts). [`src/util/Spo
 
 1. App type: **Web API** public client (no client secret in the browser).
 2. **Redirect URIs**: register both local and production URLs exactly (see table above).
-3. Env vars: `REACT_APP_SPOTIFY_CLIENT_ID`, `REACT_APP_REDIRECT_URI` (must match a registered redirect URI).
+3. Env vars: `VITE_SPOTIFY_CLIENT_ID`, `VITE_REDIRECT_URI` (must match a registered redirect URI).
 
 ## Tech Stack
 
-- React 18 (Create React App)
+- React 18 + Vite
 - Spotify Web API (Authorization Code + PKCE)
-- Jest + React Testing Library (unit tests)
+- Vitest + React Testing Library (unit tests)
 - Playwright (end-to-end tests)
 - GitHub Actions (CI/CD)
 - GitHub Pages (hosting)

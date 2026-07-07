@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import React, { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -27,7 +28,7 @@ it('have search button enable', () => {
 });
 
 it('calls search callback when button is clicked with a non-empty query', () => {
-  const mockSearch = jest.fn();
+  const mockSearch = vi.fn();
   render(
     <SearchBar search={mockSearch} searchBy="Song" setSearchBy={() => {}} />,
   );
@@ -78,7 +79,7 @@ it('clears search error when user types in the input', async () => {
 });
 
 it('submits search when Enter is pressed with a non-empty query', async () => {
-  const mockSearch = jest.fn();
+  const mockSearch = vi.fn();
   const user = userEvent.setup();
 
   render(

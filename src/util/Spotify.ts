@@ -16,8 +16,8 @@ import {
   saveCodeVerifier,
 } from './pkce';
 
-const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
-const redirectUri = process.env.REACT_APP_REDIRECT_URI;
+const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+const redirectUri = import.meta.env.VITE_REDIRECT_URI;
 let accessToken: string | undefined;
 
 function mapTrack(track: {
@@ -37,7 +37,7 @@ function mapTrack(track: {
 }
 
 function clearAuthorizationUrl(): void {
-  window.history.pushState('', '', process.env.PUBLIC_URL || '/');
+  window.history.pushState('', '', import.meta.env.BASE_URL || '/');
 }
 
 const Spotify = {

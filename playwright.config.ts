@@ -5,9 +5,7 @@ const SERVE_BUILD = process.env.CI_SERVE_BUILD === 'true';
 const HOMEPAGE_PATH = '/cc_jammming_music';
 const baseURL =
   process.env.PLAYWRIGHT_BASE_URL ||
-  (SERVE_BUILD
-    ? `http://localhost:${PORT}${HOMEPAGE_PATH}`
-    : `http://localhost:${PORT}`);
+  `http://localhost:${PORT}${HOMEPAGE_PATH}`;
 
 const devWebServer = {
   command: 'npm start',
@@ -15,11 +13,10 @@ const devWebServer = {
   reuseExistingServer: !process.env.CI,
   timeout: 120 * 1000,
   env: {
-    BROWSER: 'none',
     PORT,
-    REACT_APP_SPOTIFY_CLIENT_ID:
-      process.env.REACT_APP_SPOTIFY_CLIENT_ID || 'test-client-id',
-    REACT_APP_REDIRECT_URI: process.env.REACT_APP_REDIRECT_URI || baseURL,
+    VITE_SPOTIFY_CLIENT_ID:
+      process.env.VITE_SPOTIFY_CLIENT_ID || 'test-client-id',
+    VITE_REDIRECT_URI: process.env.VITE_REDIRECT_URI || baseURL,
   },
 };
 

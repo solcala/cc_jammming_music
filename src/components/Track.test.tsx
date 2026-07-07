@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import React from 'react';
 import { screen, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -66,7 +67,7 @@ it('should displayed track artist', () => {
 });
 
 it('calls addToPlaylist when + is clicked', async () => {
-  const addToPlaylist = jest.fn();
+  const addToPlaylist = vi.fn();
   const user = userEvent.setup();
 
   render(
@@ -83,7 +84,7 @@ it('calls addToPlaylist when + is clicked', async () => {
 });
 
 it('calls removeFromPlaylist when - is clicked', async () => {
-  const removeFromPlaylist = jest.fn();
+  const removeFromPlaylist = vi.fn();
   const user = userEvent.setup();
 
   render(

@@ -1,5 +1,6 @@
 import { webcrypto } from 'crypto';
 import { TextEncoder } from 'util';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi, type MockedFunction } from 'vitest';
 import type SpotifyType from './Spotify';
 import { PKCE_CODE_VERIFIER_STORAGE_KEY, SPOTIFY_TOKEN_URL } from './pkce';
 
@@ -8,7 +9,7 @@ let Spotify: typeof SpotifyType;
 const MOCK_ACCESS_TOKEN = 'mock-access-token';
 const MOCK_CODE_VERIFIER = 'test-pkce-verifier-abcdefghijklmnopqrstuvwxyz123456';
 
-const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+const mockFetch = vi.fn() as MockedFunction<typeof fetch>;
 
 const mockTokenResponse = {
   access_token: MOCK_ACCESS_TOKEN,
@@ -64,10 +65,10 @@ beforeAll(() => {
   }
 });
 
-beforeEach(() => {
-  jest.resetModules();
-  jest.clearAllMocks();
-  jest.useFakeTimers();
+beforeEach(async () => {
+  vi.resetModules();
+  vi.clearAllMocks();
+  vi.useFakeTimers();
 
   global.fetch = mockFetch;
   mockSessionStorage();
@@ -75,20 +76,19 @@ beforeEach(() => {
   delete (window as { location?: Location }).location;
   window.location = { href: 'http://localhost/' } as Location;
 
-  window.history.pushState = jest.fn();
+  window.history.pushState = vi.fn();
 
-  (process.env as { PUBLIC_URL?: string }).PUBLIC_URL = '/cc_jammming_music';
-  process.env.REACT_APP_SPOTIFY_CLIENT_ID = 'test-client-id';
-  process.env.REACT_APP_REDIRECT_URI = 'http://localhost:3000';
+  vi.stubEnv('VITE_SPOTIFY_CLIENT_ID', 'test-client-id');
+  vi.stubEnv('VITE_REDIRECT_URI', 'http://localhost:3000');
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  Spotify = require('./Spotify').default;
+  Spotify = (await import('./Spotify')).default;
 });
 
 afterEach(() => {
-  jest.runOnlyPendingTimers();
-  jest.useRealTimers();
-  jest.restoreAllMocks();
+  vi.runOnlyPendingTimers();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe('checkAccessToken', () => {
@@ -116,7 +116,7 @@ describe('checkAccessToken', () => {
     expect(window.history.pushState).toHaveBeenCalledWith(
       '',
       '',
-      '/cc_jammming_music',
+      '/cc_jammming_music/',
     );
     expect(
       window.sessionStorage.getItem(PKCE_CODE_VERIFIER_STORAGE_KEY),
@@ -137,7 +137,7 @@ describe('getAccessToken', () => {
 
 describe('loadSpotifyLoginPage', () => {
   it('redirects to Spotify authorize with PKCE parameters', async () => {
-    const assignMock = jest.fn();
+    const assignMock = vi.fn();
     Object.defineProperty(window.location, 'href', {
       set: assignMock,
       configurable: true,

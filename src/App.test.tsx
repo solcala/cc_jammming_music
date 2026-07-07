@@ -1,11 +1,12 @@
 import React from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi, type Mocked } from 'vitest';
 import type { Track } from './types/spotify';
 import App from './App';
 import Spotify from './util/Spotify';
 
-jest.mock('./util/Spotify');
+vi.mock('./util/Spotify');
 
 const mockTracks: Track[] = [
   {
@@ -24,10 +25,10 @@ const mockTracks: Track[] = [
   },
 ];
 
-const mockedSpotify = Spotify as jest.Mocked<typeof Spotify>;
+const mockedSpotify = Spotify as Mocked<typeof Spotify>;
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   mockedSpotify.search.mockResolvedValue(mockTracks);
   mockedSpotify.savePlaylist.mockResolvedValue(201);
 });
