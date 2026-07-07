@@ -1,45 +1,51 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import './App.css';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import SearchResults from './components/SearchResults';
 import Playlist from './components/Playlist';
-import Spotify from "./util/Spotify";
-
-import { useState, useCallback } from 'react';
+import Spotify from './util/Spotify';
+import type { Track } from './types/spotify';
 
 function App() {
-
-  const [searchBy, setSearchBy] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchBy, setSearchBy] = useState('');
+  const [searchResults, setSearchResults] = useState<Track[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [playlistName, setPlaylistName] = useState('');
-  const [playlistTracks, setPlaylistTracks] = useState([]);
-  const [message, setMessage] = useState("");
-  const [searchApiError, setSearchApiError] = useState("");
+  const [playlistTracks, setPlaylistTracks] = useState<Track[]>([]);
+  const [message, setMessage] = useState('');
+  const [searchApiError, setSearchApiError] = useState('');
 
-  const handleSearchByChange = (value) => {
+  const handleSearchByChange = (value: string) => {
     setSearchBy(value);
     if (searchApiError) {
-      setSearchApiError("");
+      setSearchApiError('');
     }
   };
 
-  // Spotify Calls
+  const clearPlaylist = () => {
+    setPlaylistName('');
+    setPlaylistTracks([]);
+  };
+
+  const addMessage = (msg = 'Playlist created') => {
+    setMessage(msg);
+  };
+
   const search = useCallback(() => {
     setIsSearching(true);
     setHasSearched(true);
-    setSearchApiError("");
+    setSearchApiError('');
     Spotify.search(searchBy)
       .then((results) => {
-        if (results?.error) {
-          setSearchApiError("Unable to search right now. Please try again.");
+        if (results && 'error' in results) {
+          setSearchApiError('Unable to search right now. Please try again.');
           setSearchResults([]);
           return;
         }
-        setSearchResults(results || []);
+        setSearchResults(Array.isArray(results) ? results : []);
       })
       .finally(() => setIsSearching(false));
   }, [searchBy]);
@@ -63,18 +69,8 @@ function App() {
     }
   }, [playlistName, playlistTracks]);
 
-  // Other functions
-  const clearPlaylist = () => {
-    setPlaylistName('');
-    setPlaylistTracks([]);
-  }
-
-  const addMessage = (msg = "Playlist created") => {
-    setMessage(msg);
-  }
-
-  const addToPlaylist = (track) => {
-    let result = playlistTracks.find(elem => elem.id === track.id);
+  const addToPlaylist = (track: Track) => {
+    const result = playlistTracks.find((elem) => elem.id === track.id);
     if (!result) {
       setPlaylistTracks((prev) => [...prev, track]);
       setMessage((current) =>
@@ -83,12 +79,13 @@ function App() {
     } else {
       addMessage('This song is in the playlist.');
     }
-
   };
 
-  const removeFromPlaylist = (trackToRemove) => {
-    setPlaylistTracks((prevTracks) => prevTracks.filter((track) => track.id !== trackToRemove.id));
-  }
+  const removeFromPlaylist = (trackToRemove: Track) => {
+    setPlaylistTracks((prevTracks) =>
+      prevTracks.filter((track) => track.id !== trackToRemove.id),
+    );
+  };
 
   return (
     <div className="app">
@@ -100,17 +97,21 @@ function App() {
         isSearching={isSearching}
       />
       {searchApiError && (
-        <p className="searchApiError" role="alert" data-testid="search-api-error">
+        <p
+          className="searchApiError"
+          role="alert"
+          data-testid="search-api-error"
+        >
           {searchApiError}
         </p>
       )}
-      <div className='container'>
+      <div className="container">
         <SearchResults
-          className="search-results"
           results={searchResults}
           hasSearched={hasSearched}
-          addToPlaylist={addToPlaylist} />
-        <Playlist className="track-list"
+          addToPlaylist={addToPlaylist}
+        />
+        <Playlist
           playlistTracks={playlistTracks}
           setPlaylistName={setPlaylistName}
           playlistName={playlistName}
