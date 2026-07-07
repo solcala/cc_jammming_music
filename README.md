@@ -194,14 +194,56 @@ Set `REACT_APP_REDIRECT_URI` to `https://solcala.github.io/cc_jammming_music/` a
 
 For live Spotify login on the deployed app, add a GitHub repository secret named `REACT_APP_SPOTIFY_CLIENT_ID` with your Spotify client ID. Without it, the app still renders; only Spotify authentication will not work in production.
 
-## Spotify authentication note
+Use a **public** Spotify app (no client secret). PKCE is designed for browser-only clients; the same `REACT_APP_SPOTIFY_CLIENT_ID` and `REACT_APP_REDIRECT_URI` variables apply after migration.
 
-This app uses Spotify's implicit grant flow, which Spotify has deprecated for new applications. It remains sufficient for this learning project, but a future migration to Authorization Code with PKCE is recommended for production use.
+## Spotify authentication (PKCE migration)
+
+The app currently uses Spotify's **implicit grant** (`response_type=token`), which returns an access token in the URL hash. Spotify has deprecated that flow for new applications.
+
+Phase 4 migrates to **Authorization Code with PKCE** — Spotify's recommended pattern for client-side SPAs. No client secret is stored or sent; only the public client ID is used.
+
+### Planned PKCE flow
+
+```mermaid
+sequenceDiagram
+  participant App
+  participant Browser
+  participant SpotifyAuth as accounts.spotify.com
+  participant SpotifyAPI as api.spotify.com
+
+  App->>Browser: generate code_verifier + code_challenge
+  App->>Browser: store code_verifier in sessionStorage
+  Browser->>SpotifyAuth: GET /authorize?response_type=code&code_challenge_method=S256&code_challenge=...
+  SpotifyAuth->>Browser: redirect with ?code=
+  App->>Browser: read code from query string
+  App->>SpotifyAuth: POST /api/token (code, verifier, client_id, redirect_uri)
+  SpotifyAuth->>App: access_token (+ refresh_token)
+  App->>Browser: clear URL, call API with Bearer token
+  App->>SpotifyAPI: search / create playlist
+```
+
+| Step | What happens |
+| --- | --- |
+| 1 | Generate a random `code_verifier` (43–128 chars) and derive `code_challenge` = BASE64URL(SHA256(verifier)). |
+| 2 | Save `code_verifier` in `sessionStorage` under `spotify_pkce_code_verifier`. |
+| 3 | Redirect to `https://accounts.spotify.com/authorize` with `response_type=code`, `code_challenge_method=S256`, `code_challenge`, `client_id`, `redirect_uri`, and `scope=playlist-modify-public`. |
+| 4 | After login, Spotify redirects to `REACT_APP_REDIRECT_URI?code=...` (query string, not hash). |
+| 5 | Exchange the `code` at `https://accounts.spotify.com/api/token` with `grant_type=authorization_code`, `code_verifier`, `client_id`, and `redirect_uri`. |
+| 6 | Store the access token in memory; optionally persist refresh token for silent renewal in a later iteration. |
+| 7 | Replace the URL with `PUBLIC_URL` so the authorization code is not left in the address bar. |
+
+Low-level helpers live in [`src/util/pkce.ts`](src/util/pkce.ts) (`generateCodeVerifier`, `generateCodeChallenge`). [`src/util/Spotify.ts`](src/util/Spotify.ts) will adopt this flow in a later batch; until then, implicit grant remains in use at runtime.
+
+### Spotify Dashboard checklist
+
+1. App type: **Web API** public client (no client secret in the browser).
+2. **Redirect URIs**: add every environment exactly — e.g. `http://localhost:3000` for local dev and `https://solcala.github.io/cc_jammming_music/` for GitHub Pages.
+3. No change to env var names: `REACT_APP_SPOTIFY_CLIENT_ID`, `REACT_APP_REDIRECT_URI`.
 
 ## Tech Stack
 
 - React 18 (Create React App)
-- Spotify Web API (Implicit Grant Flow)
+- Spotify Web API (migrating from Implicit Grant to Authorization Code + PKCE)
 - Jest + React Testing Library (unit tests)
 - Playwright (end-to-end tests)
 - GitHub Actions (CI/CD)
