@@ -90,38 +90,42 @@ function App() {
   return (
     <div className="app">
       <Header />
-      <SearchBar
-        search={search}
-        searchBy={searchBy}
-        setSearchBy={handleSearchByChange}
-        isSearching={isSearching}
-      />
-      {searchApiError && (
-        <p
-          className="searchApiError"
-          role="alert"
-          data-testid="search-api-error"
-        >
-          {searchApiError}
-        </p>
-      )}
-      <div className="container">
-        <SearchResults
-          results={searchResults}
-          hasSearched={hasSearched}
-          addToPlaylist={addToPlaylist}
-        />
-        <Playlist
-          playlistTracks={playlistTracks}
-          setPlaylistName={setPlaylistName}
-          playlistName={playlistName}
-          removeFromPlaylist={removeFromPlaylist}
-          savePlaylist={savePlaylist}
-          addMessage={addMessage}
-          message={message}
-          isSaving={isSaving}
-        />
-      </div>
+      <main className="appMain">
+        <section className="searchSection" aria-label="Search">
+          <SearchBar
+            search={search}
+            searchBy={searchBy}
+            setSearchBy={handleSearchByChange}
+            isSearching={isSearching}
+          />
+          {searchApiError && (
+            <p
+              className="searchApiError"
+              role="alert"
+              data-testid="search-api-error"
+            >
+              {searchApiError}
+            </p>
+          )}
+        </section>
+        <div className="container">
+          <SearchResults
+            results={searchResults}
+            hasSearched={hasSearched}
+            addToPlaylist={addToPlaylist}
+          />
+          <Playlist
+            playlistTracks={playlistTracks}
+            setPlaylistName={setPlaylistName}
+            playlistName={playlistName}
+            removeFromPlaylist={removeFromPlaylist}
+            savePlaylist={savePlaylist}
+            addMessage={addMessage}
+            message={message}
+            isSaving={isSaving}
+          />
+        </div>
+      </main>
     </div>
   );
 }

@@ -2,11 +2,15 @@ header {
   background-color: black;
   color: white;
   width: 100%;
-
 }
 
 h1 {
-  height: 8rem;
+  min-height: var(--header-min-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  align-content: center;
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+  padding: var(--space-sm) var(--space-md);
 }

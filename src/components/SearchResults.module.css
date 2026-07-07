@@ -1,14 +1,6 @@
 .searchResults {
   background-color: black;
   color: white;
-  margin: 0 1rem;
-  padding: 1rem;
-}
-
-@media only screen and (min-width: 481px){
-  .searchResults {
-  width: 50%;
-
-  }
-
+  padding: var(--space-md);
+  width: 100%;
 }
