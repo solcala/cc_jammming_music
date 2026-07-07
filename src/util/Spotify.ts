@@ -5,6 +5,16 @@ import type {
   SpotifyUserResponse,
   Track,
 } from '../types/spotify';
+import {
+  buildAuthorizeUrl,
+  clearCodeVerifier,
+  exchangeAuthorizationCode,
+  generateCodeChallenge,
+  generateCodeVerifier,
+  parseAuthorizationCode,
+  readCodeVerifier,
+  saveCodeVerifier,
+} from './pkce';
 
 const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
 const redirectUri = process.env.REACT_APP_REDIRECT_URI;
@@ -26,47 +36,71 @@ function mapTrack(track: {
   };
 }
 
+function clearAuthorizationUrl(): void {
+  window.history.pushState('', '', process.env.PUBLIC_URL || '/');
+}
+
 const Spotify = {
-  loadSpotifyLoginPage(): void {
-    const accessUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public&redirect_uri=${redirectUri}`;
-    window.location.href = accessUrl;
+  async loadSpotifyLoginPage(): Promise<void> {
+    if (!clientId || !redirectUri) {
+      return;
+    }
+
+    const verifier = generateCodeVerifier();
+    saveCodeVerifier(verifier);
+    const challenge = await generateCodeChallenge(verifier);
+    window.location.href = buildAuthorizeUrl({
+      clientId,
+      redirectUri,
+      codeChallenge: challenge,
+    });
   },
 
-  checkAccessToken(): string | undefined {
-    const accessTokenMatch = window.location.href.match(/access_token=([^&]*)/);
-    const expiresInMatch = window.location.href.match(/expires_in=([^&]*)/);
-    if (accessTokenMatch && expiresInMatch) {
-      accessToken = accessTokenMatch[1];
-      const expiresIn = Number(expiresInMatch[1]);
+  async checkAccessToken(): Promise<string | undefined> {
+    const code = parseAuthorizationCode(window.location.href);
+    if (!code || !clientId || !redirectUri) {
+      return undefined;
+    }
+
+    const verifier = readCodeVerifier();
+    if (!verifier) {
+      return undefined;
+    }
+
+    try {
+      const tokenResponse = await exchangeAuthorizationCode({
+        clientId,
+        redirectUri,
+        code,
+        codeVerifier: verifier,
+      });
+
+      accessToken = tokenResponse.access_token;
       window.setTimeout(() => {
         accessToken = '';
-      }, expiresIn * 1000);
-      window.history.pushState(
-        'Access Token',
-        '',
-        process.env.PUBLIC_URL || '/',
-      );
+      }, tokenResponse.expires_in * 1000);
+      clearCodeVerifier();
+      clearAuthorizationUrl();
       return accessToken;
+    } catch (error) {
+      console.log(error);
+      clearCodeVerifier();
+      return undefined;
     }
-    return undefined;
   },
 
-  getAccessToken(): string | undefined {
+  async getAccessToken(): Promise<string | undefined> {
     try {
       if (accessToken) {
         return accessToken;
       }
-      const accessTokenMatch =
-        window.location.href.match(/access_token=([^&]*)/);
-      const expiresInMatch = window.location.href.match(/expires_in=([^&]*)/);
 
-      if (!(accessTokenMatch && expiresInMatch)) {
-        this.loadSpotifyLoginPage();
-        return undefined;
+      if (parseAuthorizationCode(window.location.href)) {
+        return this.checkAccessToken();
       }
 
-      accessToken = this.checkAccessToken();
-      return accessToken;
+      await this.loadSpotifyLoginPage();
+      return undefined;
     } catch (error) {
       console.log(error);
       return undefined;
@@ -78,7 +112,7 @@ const Spotify = {
       if (!term) {
         return undefined;
       }
-      const token = this.getAccessToken();
+      const token = await this.getAccessToken();
       const response = await fetch(
         `https://api.spotify.com/v1/search?type=track&q=${encodeURIComponent(term)}`,
         {
@@ -117,7 +151,7 @@ const Spotify = {
       if (!name || !trackUris.length) {
         return undefined;
       }
-      const token = this.getAccessToken();
+      const token = await this.getAccessToken();
       const headers = { Authorization: `Bearer ${token}` };
 
       const response = await fetch('https://api.spotify.com/v1/me', {

@@ -22,7 +22,8 @@
     "deploy": "gh-pages -d build",
     "test": "react-scripts test",
     "test:e2e": "playwright test",
-    "test:e2e:ci": "mkdir -p test-results && CI_SERVE_BUILD=true playwright test",
+    "build:e2e": "REACT_APP_SPOTIFY_CLIENT_ID=test-client-id REACT_APP_REDIRECT_URI=http://localhost:3000/cc_jammming_music react-scripts build",
+    "test:e2e:ci": "mkdir -p test-results && npm run build:e2e && CI_SERVE_BUILD=true playwright test",
     "test:api": "playwright test e2e/api",
     "test:ui": "playwright test e2e/ui",
     "test:e2e:ui": "playwright test --ui",
@@ -30,7 +31,7 @@
     "eject": "react-scripts eject",
     "postinstall": "patch-package",
     "lint": "eslint src e2e --max-warnings 0",
-    "test:all": "npm run test:coverage && npm run build && npm run test:e2e:ci"
+    "test:all": "npm run test:coverage && npm run test:e2e:ci"
   },
   "overrides": {
     "nth-check": "^2.1.1",

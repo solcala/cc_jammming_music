@@ -194,14 +194,72 @@ Set `REACT_APP_REDIRECT_URI` to `https://solcala.github.io/cc_jammming_music/` a
 
 For live Spotify login on the deployed app, add a GitHub repository secret named `REACT_APP_SPOTIFY_CLIENT_ID` with your Spotify client ID. Without it, the app still renders; only Spotify authentication will not work in production.
 
-## Spotify authentication note
+Use a **public** Spotify app (no client secret). PKCE is designed for browser-only clients; the same `REACT_APP_SPOTIFY_CLIENT_ID` and `REACT_APP_REDIRECT_URI` variables apply.
 
-This app uses Spotify's implicit grant flow, which Spotify has deprecated for new applications. It remains sufficient for this learning project, but a future migration to Authorization Code with PKCE is recommended for production use.
+#### Spotify Developer Dashboard setup
+
+1. Open [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and select your app (or create one).
+2. Under **Settings**, confirm the app is a **Web API** client. Do not embed a client secret in this SPA — PKCE uses the public client ID only.
+3. Under **Redirect URIs**, add every URL the app runs on. Each entry must match `REACT_APP_REDIRECT_URI` **exactly** (scheme, host, path, trailing slash):
+
+| Environment | `REACT_APP_REDIRECT_URI` |
+| --- | --- |
+| Local dev (`npm start`) | `http://localhost:3000` |
+| GitHub Pages (production) | `https://solcala.github.io/cc_jammming_music/` |
+
+4. Save settings. Spotify redirects back with `?code=` in the query string after login — not `#access_token=` in the hash.
+5. Copy the **Client ID** into `.env` locally (`REACT_APP_SPOTIFY_CLIENT_ID`) and into the `REACT_APP_SPOTIFY_CLIENT_ID` GitHub Actions secret for production builds.
+
+Playwright e2e tests mock the `/api/token` exchange and bootstrap a PKCE callback URL — no real Spotify login is required in CI.
+
+## Spotify authentication (PKCE)
+
+The app uses Spotify **Authorization Code with PKCE** — the recommended pattern for browser-only SPAs. No client secret is stored or sent; only the public client ID is used.
+
+After login, Spotify redirects to `REACT_APP_REDIRECT_URI?code=...` (query string). The app exchanges that code for an access token via [`src/util/pkce.ts`](src/util/pkce.ts) and [`src/util/Spotify.ts`](src/util/Spotify.ts).
+
+### PKCE flow
+
+```mermaid
+sequenceDiagram
+  participant App
+  participant Browser
+  participant SpotifyAuth as accounts.spotify.com
+  participant SpotifyAPI as api.spotify.com
+
+  App->>Browser: generate code_verifier + code_challenge
+  App->>Browser: store code_verifier in sessionStorage
+  Browser->>SpotifyAuth: GET /authorize?response_type=code&code_challenge_method=S256&code_challenge=...
+  SpotifyAuth->>Browser: redirect with ?code=
+  App->>Browser: read code from query string
+  App->>SpotifyAuth: POST /api/token (code, verifier, client_id, redirect_uri)
+  SpotifyAuth->>App: access_token (+ refresh_token)
+  App->>Browser: clear URL, call API with Bearer token
+  App->>SpotifyAPI: search / create playlist
+```
+
+| Step | What happens |
+| --- | --- |
+| 1 | Generate a random `code_verifier` (43–128 chars) and derive `code_challenge` = BASE64URL(SHA256(verifier)). |
+| 2 | Save `code_verifier` in `sessionStorage` under `spotify_pkce_code_verifier`. |
+| 3 | Redirect to `https://accounts.spotify.com/authorize` with `response_type=code`, `code_challenge_method=S256`, `code_challenge`, `client_id`, `redirect_uri`, and `scope=playlist-modify-public`. |
+| 4 | After login, Spotify redirects to `REACT_APP_REDIRECT_URI?code=...` (query string, not hash). |
+| 5 | Exchange the `code` at `https://accounts.spotify.com/api/token` with `grant_type=authorization_code`, `code_verifier`, `client_id`, and `redirect_uri`. |
+| 6 | Store the access token in memory; optionally persist refresh token for silent renewal in a later iteration. |
+| 7 | Replace the URL with `PUBLIC_URL` so the authorization code is not left in the address bar. |
+
+Low-level helpers live in [`src/util/pkce.ts`](src/util/pkce.ts). [`src/util/Spotify.ts`](src/util/Spotify.ts) uses them for login, token exchange, and API calls.
+
+### Spotify Dashboard checklist
+
+1. App type: **Web API** public client (no client secret in the browser).
+2. **Redirect URIs**: register both local and production URLs exactly (see table above).
+3. Env vars: `REACT_APP_SPOTIFY_CLIENT_ID`, `REACT_APP_REDIRECT_URI` (must match a registered redirect URI).
 
 ## Tech Stack
 
 - React 18 (Create React App)
-- Spotify Web API (Implicit Grant Flow)
+- Spotify Web API (Authorization Code + PKCE)
 - Jest + React Testing Library (unit tests)
 - Playwright (end-to-end tests)
 - GitHub Actions (CI/CD)
