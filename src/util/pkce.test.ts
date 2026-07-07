@@ -1,5 +1,6 @@
 import { webcrypto } from 'crypto';
 import { TextEncoder } from 'util';
+import { beforeAll, beforeEach, vi, type MockedFunction } from 'vitest';
 import type { SpotifyTokenResponse } from '../types/spotify';
 import {
   PKCE_CODE_VERIFIER_STORAGE_KEY,
@@ -16,7 +17,7 @@ import {
   saveCodeVerifier,
 } from './pkce';
 
-const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+const mockFetch = vi.fn() as MockedFunction<typeof fetch>;
 
 beforeAll(() => {
   if (!globalThis.crypto?.subtle) {
@@ -32,7 +33,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   global.fetch = mockFetch;
 
   const store = new Map<string, string>();

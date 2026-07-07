@@ -1,6 +1,5 @@
 {
   "name": "cc_jammming_music",
-  "homepage": "https://solcala.github.io/cc_jammming_music/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -12,49 +11,30 @@
     "gh-pages": "^6.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-scripts": "^5.0.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
-    "test": "react-scripts test",
+    "deploy": "gh-pages -d dist",
+    "test": "vitest",
     "test:e2e": "playwright test",
-    "build:e2e": "REACT_APP_SPOTIFY_CLIENT_ID=test-client-id REACT_APP_REDIRECT_URI=http://localhost:3000/cc_jammming_music react-scripts build",
+    "build:e2e": "VITE_SPOTIFY_CLIENT_ID=test-client-id VITE_REDIRECT_URI=http://localhost:3000/cc_jammming_music vite build",
     "test:e2e:ci": "mkdir -p test-results && npm run build:e2e && CI_SERVE_BUILD=true playwright test",
     "test:api": "playwright test e2e/api",
     "test:ui": "playwright test e2e/ui",
     "test:e2e:ui": "playwright test --ui",
-    "test:coverage": "mkdir -p test-results && CI=true npm test -- --coverage --watchAll=false --json --outputFile=test-results/jest.json",
-    "eject": "react-scripts eject",
-    "postinstall": "patch-package",
+    "test:coverage": "mkdir -p test-results && vitest run --coverage --reporter=json --outputFile=test-results/jest.json",
     "lint": "eslint src e2e --max-warnings 0",
-    "test:all": "npm run test:coverage && npm run test:e2e:ci",
-    "dev:vite": "vite",
-    "build:vite": "vite build",
-    "preview:vite": "vite preview"
+    "test:all": "npm run test:coverage && npm run test:e2e:ci"
   },
   "overrides": {
-    "nth-check": "^2.1.1",
-    "postcss": "^8.4.49",
-    "path-to-regexp": "^0.1.12",
-    "nanoid": "^3.3.11",
-    "http-proxy-middleware": "^2.0.9",
-    "webpack-dev-server": "^5.2.4",
     "brace-expansion": "^2.0.2",
-    "on-headers": "^1.1.0",
-    "form-data": "^3.0.4",
-    "js-yaml": "^3.14.2",
-    "glob": "^10.5.0",
-    "test-exclude": "^7.0.1",
-    "@jest/reporters": {
-      "glob": "^7.2.3"
-    },
-    "node-forge": "^1.3.2",
-    "qs": "^6.14.1",
-    "lodash": "^4.17.23"
+    "test-exclude": {
+      "minimatch": "^9.0.5"
+    }
   },
   "eslintConfig": {
     "extends": [
@@ -73,37 +53,19 @@
       }
     ]
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "jest": {
-    "coverageThreshold": {
-      "global": {
-        "branches": 60,
-        "functions": 65,
-        "lines": 70,
-        "statements": 70
-      }
-    }
-  },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
     "@playwright/test": "^1.61.1",
     "@types/jest": "^27.5.2",
+    "@types/node": "^20.19.43",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.8",
     "eslint": "^8.57.1",
+    "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-testing-library": "^6.5.0",
-    "patch-package": "^8.0.0",
+    "jsdom": "^25.0.1",
     "serve": "^14.2.4",
     "typescript": "^4.9.5",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
   }
 }

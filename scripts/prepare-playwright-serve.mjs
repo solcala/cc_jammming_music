@@ -4,13 +4,13 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
-const buildDir = path.join(root, 'build');
+const buildDir = path.join(root, 'dist');
 const serveRoot = path.join(root, '.playwright-serve');
 const homepagePath = '/cc_jammming_music';
 const targetDir = path.join(serveRoot, homepagePath.slice(1));
 
 if (!fs.existsSync(buildDir)) {
-  console.error('build/ not found. Run npm run build first.');
+  console.error('dist/ not found. Run npm run build first.');
   process.exit(1);
 }
 
