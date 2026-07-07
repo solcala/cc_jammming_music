@@ -43,7 +43,7 @@ const Spotify = {
       }, expiresIn * 1000);
       window.history.pushState(
         'Access Token',
-        null,
+        '',
         process.env.PUBLIC_URL || '/',
       );
       return accessToken;

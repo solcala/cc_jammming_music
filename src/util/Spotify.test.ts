@@ -44,7 +44,7 @@ describe('checkAccessToken', () => {
     expect(token).toBe('abc123');
     expect(window.history.pushState).toHaveBeenCalledWith(
       'Access Token',
-      null,
+      '',
       '/cc_jammming_music',
     );
   });
