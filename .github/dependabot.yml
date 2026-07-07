@@ -11,6 +11,12 @@ updates:
         dependency-type: development
         patterns:
           - '*'
+        exclude-patterns:
+          - 'eslint'
+          - 'eslint-config-react-app'
+          - 'typescript'
+          - '@typescript-eslint/*'
+          - 'typescript-eslint'
       production-dependencies:
         dependency-type: production
         patterns:

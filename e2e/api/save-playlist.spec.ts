@@ -1,8 +1,9 @@
+import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures/test';
 import { mockSpotifyApi } from '../fixtures/mock-spotify-api';
 import { mockPlaylist, mockTracks, mockUser } from '../fixtures/spotify-mocks';
 
-async function searchAndAddFirstTrack(page) {
+async function searchAndAddFirstTrack(page: Page) {
   await page.getByTestId('search-by-input').fill('test song');
   await page.getByTestId('search-button').click();
   await expect(page.getByTestId('track-item-track-1')).toBeVisible();

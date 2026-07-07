@@ -18,6 +18,7 @@ export default defineConfig({
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'src/**/*.d.ts',
+        'src/types/**',
         'src/**/*.test.{ts,tsx}',
         'src/index.tsx',
         'src/reportWebVitals.ts',

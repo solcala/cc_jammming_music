@@ -54,6 +54,7 @@ Open [http://localhost:3000/cc_jammming_music/](http://localhost:3000/cc_jammmin
 | `npm run test:coverage` | Run Vitest unit tests with coverage report |
 | `npm run test:all` | Run Vitest coverage, production build, and Playwright CI tests (full local check) |
 | `npm run lint` | Run ESLint on `src/` and `e2e/` |
+| `npm run typecheck` | Run TypeScript checks for `src/`, config files, and `e2e/` |
 | `npm run test:api` | Run Playwright API tests only |
 | `npm run test:ui` | Run Playwright UI tests only |
 | `npm run test:e2e:ui` | Open the Playwright test UI |
@@ -115,6 +116,13 @@ This runs `test:coverage`, then `build:e2e`, then `test:e2e:serve`.
 ### Dependency updates
 
 [Dependabot](https://docs.github.com/en/code-security/dependabot) opens weekly pull requests for npm packages and GitHub Actions (see [`.github/dependabot.yml`](.github/dependabot.yml)). Review security alerts on the repository **Security** tab and merge Dependabot PRs after CI passes.
+
+**Merge tips (post-Vite):**
+
+- Prefer **small, focused** Dependabot PRs over large grouped bumps.
+- The grouped `development-dependencies` PR **excludes** `eslint`, `typescript`, and related packages so they can be upgraded in controlled steps after the flat ESLint config lands (Phase 6).
+- Do **not** merge mega-bumps that combine ESLint 10 + TypeScript 6 + Vite 8 in one PR — upgrade toolchain packages one at a time and run `npm run test:all` after each.
+- Close or defer outdated grouped PRs (e.g. ones that still reference `eslint-config-react-app`) once Phase 6 is merged.
 
 ## Deployment
 

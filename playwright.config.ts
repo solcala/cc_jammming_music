@@ -16,7 +16,7 @@ const devWebServer = {
     PORT,
     VITE_SPOTIFY_CLIENT_ID:
       process.env.VITE_SPOTIFY_CLIENT_ID || 'test-client-id',
-    VITE_REDIRECT_URI: process.env.VITE_REDIRECT_URI || baseURL,
+    VITE_REDIRECT_URI: process.env.VITE_REDIRECT_URI || `${baseURL}/`,
   },
 };
 

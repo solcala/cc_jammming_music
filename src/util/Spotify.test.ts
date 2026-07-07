@@ -73,8 +73,11 @@ beforeEach(async () => {
   global.fetch = mockFetch;
   mockSessionStorage();
 
-  delete (window as { location?: Location }).location;
-  window.location = { href: 'http://localhost/' } as Location;
+  Object.defineProperty(window, 'location', {
+    value: { href: 'http://localhost/' },
+    writable: true,
+    configurable: true,
+  });
 
   window.history.pushState = vi.fn();
 
