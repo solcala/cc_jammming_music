@@ -1,12 +1,13 @@
 import React from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { Track } from './types/spotify';
 import App from './App';
 import Spotify from './util/Spotify';
 
 jest.mock('./util/Spotify');
 
-const mockTracks = [
+const mockTracks: Track[] = [
   {
     id: 'track-1',
     name: 'Test Song One',
@@ -23,13 +24,18 @@ const mockTracks = [
   },
 ];
 
+const mockedSpotify = Spotify as jest.Mocked<typeof Spotify>;
+
 beforeEach(() => {
   jest.clearAllMocks();
-  Spotify.search.mockResolvedValue(mockTracks);
-  Spotify.savePlaylist.mockResolvedValue(201);
+  mockedSpotify.search.mockResolvedValue(mockTracks);
+  mockedSpotify.savePlaylist.mockResolvedValue(201);
 });
 
-async function searchForTracks(user, term = 'test') {
+async function searchForTracks(
+  user: ReturnType<typeof userEvent.setup>,
+  term = 'test',
+) {
   await user.type(screen.getByTestId('search-by-input'), term);
   await user.click(screen.getByTestId('search-button'));
   await waitFor(() => {
@@ -56,13 +62,17 @@ it('search populates results from mocked Spotify', async () => {
 
   await searchForTracks(user);
 
-  expect(Spotify.search).toHaveBeenCalledWith('test');
-  expect(screen.getByTestId('track-name-track-1')).toHaveTextContent('Test Song One');
-  expect(screen.getByTestId('track-name-track-2')).toHaveTextContent('Test Song Two');
+  expect(mockedSpotify.search).toHaveBeenCalledWith('test');
+  expect(screen.getByTestId('track-name-track-1')).toHaveTextContent(
+    'Test Song One',
+  );
+  expect(screen.getByTestId('track-name-track-2')).toHaveTextContent(
+    'Test Song Two',
+  );
 });
 
 it('shows search error when Spotify search fails', async () => {
-  Spotify.search.mockResolvedValue({ error: true });
+  mockedSpotify.search.mockResolvedValue({ error: true });
   const user = userEvent.setup();
   render(<App />);
 
@@ -78,7 +88,7 @@ it('shows search error when Spotify search fails', async () => {
 });
 
 it('clears search API error when the user types again', async () => {
-  Spotify.search.mockResolvedValue({ error: true });
+  mockedSpotify.search.mockResolvedValue({ error: true });
   const user = userEvent.setup();
   render(<App />);
 
@@ -103,7 +113,7 @@ it('shows inline error on empty search without calling Spotify', async () => {
   expect(screen.getByTestId('search-error')).toHaveTextContent(
     'Please enter a song title',
   );
-  expect(Spotify.search).not.toHaveBeenCalled();
+  expect(mockedSpotify.search).not.toHaveBeenCalled();
 });
 
 it('adds a track from search results to the playlist panel', async () => {
@@ -176,13 +186,13 @@ it('clears playlist and shows success message after successful save', async () =
   });
   expect(screen.getByTestId('playlist-title-input')).toHaveValue('');
   expect(screen.queryByTestId('track-remove-track-1')).not.toBeInTheDocument();
-  expect(Spotify.savePlaylist).toHaveBeenCalledWith('My Playlist', [
+  expect(mockedSpotify.savePlaylist).toHaveBeenCalledWith('My Playlist', [
     'spotify:track:track-1',
   ]);
 });
 
 it('shows error message when save fails', async () => {
-  Spotify.savePlaylist.mockResolvedValue(undefined);
+  mockedSpotify.savePlaylist.mockResolvedValue(undefined);
   const user = userEvent.setup();
   render(<App />);
 
@@ -199,8 +209,8 @@ it('shows error message when save fails', async () => {
 });
 
 it('shows Searching... while search is in flight', async () => {
-  let resolveSearch;
-  Spotify.search.mockImplementation(
+  let resolveSearch: (value: Track[]) => void;
+  mockedSpotify.search.mockImplementation(
     () =>
       new Promise((resolve) => {
         resolveSearch = resolve;
@@ -216,15 +226,15 @@ it('shows Searching... while search is in flight', async () => {
   expect(screen.getByTestId('search-button')).toHaveTextContent('Searching...');
   expect(screen.getByTestId('search-button')).toBeDisabled();
 
-  resolveSearch(mockTracks);
+  resolveSearch!(mockTracks);
   await waitFor(() => {
     expect(screen.getByTestId('search-button')).toHaveTextContent('Search');
   });
 });
 
 it('shows Saving... while save is in flight', async () => {
-  let resolveSave;
-  Spotify.savePlaylist.mockImplementation(
+  let resolveSave: (value: number) => void;
+  mockedSpotify.savePlaylist.mockImplementation(
     () =>
       new Promise((resolve) => {
         resolveSave = resolve;
@@ -244,7 +254,7 @@ it('shows Saving... while save is in flight', async () => {
   );
   expect(screen.getByTestId('save-playlist-button')).toBeDisabled();
 
-  resolveSave(201);
+  resolveSave!(201);
   await waitFor(() => {
     expect(screen.getByTestId('save-playlist-button')).toHaveTextContent(
       'Save to Spotify',
