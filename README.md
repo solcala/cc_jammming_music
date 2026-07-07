@@ -194,7 +194,23 @@ Set `REACT_APP_REDIRECT_URI` to `https://solcala.github.io/cc_jammming_music/` a
 
 For live Spotify login on the deployed app, add a GitHub repository secret named `REACT_APP_SPOTIFY_CLIENT_ID` with your Spotify client ID. Without it, the app still renders; only Spotify authentication will not work in production.
 
-Use a **public** Spotify app (no client secret). PKCE is designed for browser-only clients; the same `REACT_APP_SPOTIFY_CLIENT_ID` and `REACT_APP_REDIRECT_URI` variables apply after migration.
+Use a **public** Spotify app (no client secret). PKCE is designed for browser-only clients; the same `REACT_APP_SPOTIFY_CLIENT_ID` and `REACT_APP_REDIRECT_URI` variables apply.
+
+#### Spotify Developer Dashboard setup
+
+1. Open [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and select your app (or create one).
+2. Under **Settings**, confirm the app is a **Web API** client. Do not embed a client secret in this SPA — PKCE uses the public client ID only.
+3. Under **Redirect URIs**, add every URL the app runs on. Each entry must match `REACT_APP_REDIRECT_URI` **exactly** (scheme, host, path, trailing slash):
+
+| Environment | `REACT_APP_REDIRECT_URI` |
+| --- | --- |
+| Local dev (`npm start`) | `http://localhost:3000` |
+| GitHub Pages (production) | `https://solcala.github.io/cc_jammming_music/` |
+
+4. Save settings. Spotify redirects back with `?code=` in the query string after login — not `#access_token=` in the hash.
+5. Copy the **Client ID** into `.env` locally (`REACT_APP_SPOTIFY_CLIENT_ID`) and into the `REACT_APP_SPOTIFY_CLIENT_ID` GitHub Actions secret for production builds.
+
+Playwright e2e tests mock the `/api/token` exchange and bootstrap a PKCE callback URL — no real Spotify login is required in CI.
 
 ## Spotify authentication (PKCE)
 
@@ -237,8 +253,8 @@ Low-level helpers live in [`src/util/pkce.ts`](src/util/pkce.ts). [`src/util/Spo
 ### Spotify Dashboard checklist
 
 1. App type: **Web API** public client (no client secret in the browser).
-2. **Redirect URIs**: add every environment exactly — e.g. `http://localhost:3000` for local dev and `https://solcala.github.io/cc_jammming_music/` for GitHub Pages.
-3. No change to env var names: `REACT_APP_SPOTIFY_CLIENT_ID`, `REACT_APP_REDIRECT_URI`.
+2. **Redirect URIs**: register both local and production URLs exactly (see table above).
+3. Env vars: `REACT_APP_SPOTIFY_CLIENT_ID`, `REACT_APP_REDIRECT_URI` (must match a registered redirect URI).
 
 ## Tech Stack
 

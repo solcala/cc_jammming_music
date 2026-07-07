@@ -1,4 +1,14 @@
 export const MOCK_ACCESS_TOKEN = 'mock-access-token';
+export const MOCK_AUTH_CODE = 'mock-auth-code';
+export const MOCK_PKCE_CODE_VERIFIER =
+  'e2e-pkce-verifier-abcdefghijklmnopqrstuvwxyz123456';
+
+export const mockTokenResponse = {
+  access_token: MOCK_ACCESS_TOKEN,
+  token_type: 'Bearer',
+  scope: 'playlist-modify-public',
+  expires_in: 3600,
+};
 
 export const mockUser = {
   id: 'test-user-id',
