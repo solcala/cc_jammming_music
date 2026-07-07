@@ -28,11 +28,12 @@ function Track({
 
   return (
     <div className={styles.Track} data-testid={`track-item-${trackId}`}>
-      <div>
+      <div className={styles.trackInfo}>
         <h3 data-testid={`track-name-${trackId}`}>{track.name}</h3>
         <p data-testid={`track-artist-${trackId}`}>{track.artist}</p>
       </div>
       <button
+        className={styles.actionBtn}
         onClick={handleClick}
         data-testid={
           addRemoveTrack ? `track-add-${trackId}` : `track-remove-${trackId}`

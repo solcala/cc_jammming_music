@@ -23,12 +23,14 @@ function SearchResults({
       {showEmptyState ? (
         <p data-testid="search-empty-message">No results found</p>
       ) : (
-        <Tracklist
-          tracks={results}
-          addRemoveTrack={addRemoveTrack}
-          addToPlaylist={addToPlaylist}
-          removeFromPlaylist={() => {}}
-        />
+        <div className={styles.trackList}>
+          <Tracklist
+            tracks={results}
+            addRemoveTrack={addRemoveTrack}
+            addToPlaylist={addToPlaylist}
+            removeFromPlaylist={() => {}}
+          />
+        </div>
       )}
     </div>
   );

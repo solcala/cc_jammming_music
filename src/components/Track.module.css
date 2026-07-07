@@ -1,18 +1,50 @@
 .Track {
-  width: 90%;
-  background-color: darkmagenta;
-  color: snow;
-  border-bottom: 1px solid snow;
-  padding: 0.5rem 1rem;
+  width: 100%;
+  background-color: var(--color-track-bg);
+  color: var(--color-track-text);
+  padding: var(--space-sm) var(--space-md);
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  margin-top: 1rem;
+  gap: var(--space-sm);
+  border-radius: var(--radius-md);
 }
 
-.Track h3 {
-  line-height: 2rem;
+.trackInfo {
+  flex: 1;
+  min-width: 0;
 }
 
-.Track button {
-  padding: 1rem;
+.trackInfo h3 {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trackInfo p {
+  font-size: var(--font-size-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actionBtn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: var(--color-track-action-bg);
+  color: var(--color-track-action-text);
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  padding: var(--space-sm);
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.actionBtn:focus {
+  outline: 2px solid var(--color-track-text);
+  outline-offset: 2px;
 }

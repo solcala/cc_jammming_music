@@ -72,12 +72,14 @@ function Playlist({
         type="text"
         placeholder="Add a playlist title"
       />
-      <Tracklist
-        tracks={playlistTracks}
-        removeFromPlaylist={removeFromPlaylist}
-        addRemoveTrack={addRemoveTrack}
-        addToPlaylist={() => {}}
-      />
+      <div className={styles.trackList}>
+        <Tracklist
+          tracks={playlistTracks}
+          removeFromPlaylist={removeFromPlaylist}
+          addRemoveTrack={addRemoveTrack}
+          addToPlaylist={() => {}}
+        />
+      </div>
       {validationError && (
         <p
           className={styles.error}

@@ -1,6 +1,6 @@
 header {
-  background-color: black;
-  color: white;
+  background-color: var(--color-surface-dark);
+  color: var(--color-text-on-dark);
   width: 100%;
 }
 
