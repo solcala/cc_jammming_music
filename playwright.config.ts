@@ -51,7 +51,13 @@ export default defineConfig({
     {
       name: 'ui',
       testMatch: /ui\/.*\.spec\.ts/,
+      testIgnore: /ui\/mobile\//,
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'ui-mobile',
+      testMatch: /ui\/mobile\/.*\.spec\.ts/,
+      use: { ...devices['Pixel 5'] },
     },
   ],
   webServer: SERVE_BUILD ? ciServeWebServer : devWebServer,

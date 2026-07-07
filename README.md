@@ -56,7 +56,8 @@ Open [http://localhost:3000/cc_jammming_music/](http://localhost:3000/cc_jammmin
 | `npm run lint` | Run ESLint on `src/` and `e2e/` |
 | `npm run typecheck` | Run TypeScript checks for `src/`, config files, and `e2e/` |
 | `npm run test:api` | Run Playwright API tests only |
-| `npm run test:ui` | Run Playwright UI tests only |
+| `npm run test:ui` | Run Playwright desktop UI tests only |
+| `npm run test:ui:mobile` | Run Playwright mobile UI smoke tests (`Pixel 5` viewport, Chromium) |
 | `npm run test:e2e:ui` | Open the Playwright test UI |
 
 ## Testing
