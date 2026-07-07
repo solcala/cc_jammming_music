@@ -232,7 +232,7 @@ sequenceDiagram
 | 6 | Store the access token in memory; optionally persist refresh token for silent renewal in a later iteration. |
 | 7 | Replace the URL with `PUBLIC_URL` so the authorization code is not left in the address bar. |
 
-Low-level helpers live in [`src/util/pkce.ts`](src/util/pkce.ts) (`generateCodeVerifier`, `generateCodeChallenge`). [`src/util/Spotify.ts`](src/util/Spotify.ts) will adopt this flow in a later batch; until then, implicit grant remains in use at runtime.
+Low-level helpers live in [`src/util/pkce.ts`](src/util/pkce.ts) (`generateCodeVerifier`, `generateCodeChallenge`, `buildAuthorizeUrl`, `parseAuthorizationCode`, `exchangeAuthorizationCode`, and sessionStorage helpers). [`src/util/Spotify.ts`](src/util/Spotify.ts) will adopt this flow in a later batch; until then, implicit grant remains in use at runtime.
 
 ### Spotify Dashboard checklist
 
