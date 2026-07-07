@@ -5,9 +5,7 @@ const SERVE_BUILD = process.env.CI_SERVE_BUILD === 'true';
 const HOMEPAGE_PATH = '/cc_jammming_music';
 const baseURL =
   process.env.PLAYWRIGHT_BASE_URL ||
-  (SERVE_BUILD
-    ? `http://localhost:${PORT}${HOMEPAGE_PATH}`
-    : `http://localhost:${PORT}`);
+  `http://localhost:${PORT}${HOMEPAGE_PATH}`;
 
 const devWebServer = {
   command: 'npm start',

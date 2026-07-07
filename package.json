@@ -22,7 +22,8 @@
     "test": "vitest",
     "test:e2e": "playwright test",
     "build:e2e": "VITE_SPOTIFY_CLIENT_ID=test-client-id VITE_REDIRECT_URI=http://localhost:3000/cc_jammming_music vite build",
-    "test:e2e:ci": "mkdir -p test-results && npm run build:e2e && CI_SERVE_BUILD=true playwright test",
+    "test:e2e:serve": "mkdir -p test-results && CI_SERVE_BUILD=true playwright test",
+    "test:e2e:ci": "npm run build:e2e && npm run test:e2e:serve",
     "test:api": "playwright test e2e/api",
     "test:ui": "playwright test e2e/ui",
     "test:e2e:ui": "playwright test --ui",
@@ -55,7 +56,6 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
-    "@types/jest": "^27.5.2",
     "@types/node": "^20.19.43",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/coverage-v8": "^2.1.8",
