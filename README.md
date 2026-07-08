@@ -1,13 +1,74 @@
 # Jammming
 
-A React web application that lets you search the Spotify catalog, build custom playlists, and save them directly to your Spotify account.
+[![CI](https://github.com/solcala/cc_jammming_music/actions/workflows/deploy.yml/badge.svg)](https://github.com/solcala/cc_jammming_music/actions/workflows/deploy.yml)
+[![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?logo=playwright&logoColor=white)](https://solcala.github.io/cc_jammming_music/reports/index.html)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vitest](https://img.shields.io/badge/Vitest-unit%20%2B%20coverage-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+Search the Spotify catalog, build a playlist in the browser, and save it to your Spotify account.
+
+**Live app:** [https://solcala.github.io/cc_jammming_music/](https://solcala.github.io/cc_jammming_music/)  
+**Playwright report (after successful `main` deploy):** [https://solcala.github.io/cc_jammming_music/reports/index.html](https://solcala.github.io/cc_jammming_music/reports/index.html)  
+**Contributing:** see [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Screenshots
+
+| Desktop | Mobile |
+| --- | --- |
+| ![Jammming desktop](docs/screenshots/desktop/app.png) | ![Jammming mobile](docs/screenshots/mobile/app.png) |
 
 ## Features
 
 - Search tracks by title using the Spotify Web API
-- Preview track name, artist, and album
+- Preview track name, artist, and album in a compact dark UI
 - Add and remove tracks from a playlist
-- Name your playlist and save it to Spotify
+- Name your playlist and save it to Spotify via Authorization Code + PKCE
+- Mobile-first layout with dedicated Playwright mobile smoke tests
+
+## Architecture
+
+```mermaid
+flowchart TB
+  subgraph client [Browser SPA]
+    UI[React UI]
+    SpotifyUtil[Spotify + PKCE helpers]
+    UI --> SpotifyUtil
+  end
+
+  subgraph spotify [Spotify]
+    Auth[accounts.spotify.com]
+    API[api.spotify.com]
+  end
+
+  subgraph ci [GitHub Actions]
+    Unit[Vitest + coverage]
+    E2E[Playwright api / ui / ui-mobile]
+    Pages[GitHub Pages deploy]
+  end
+
+  SpotifyUtil -->|authorize + token exchange| Auth
+  SpotifyUtil -->|search / playlists| API
+  Unit --> E2E --> Pages
+  Pages -->|host app + reports| client
+```
+
+High-level auth flow (PKCE) is documented in [Spotify authentication (PKCE)](#spotify-authentication-pkce).
+
+## Tech stack
+
+| Area | Choice |
+| --- | --- |
+| UI | React 18 |
+| Bundler / dev server | Vite 5 |
+| Language | TypeScript 5 |
+| Unit tests | Vitest + React Testing Library + `@vitest/coverage-v8` |
+| E2E | Playwright (`api`, `ui`, `ui-mobile`) |
+| Lint | ESLint 9 flat config |
+| Auth | Spotify Authorization Code + PKCE (public client, no secret in the browser) |
+| CI / CD | GitHub Actions → GitHub Pages |
+| Hosting path | `/cc_jammming_music/` |
 
 ## Prerequisites
 
@@ -106,7 +167,7 @@ See [`docker/playwright.Dockerfile`](docker/playwright.Dockerfile) for the pinne
 npm run test:coverage
 ```
 
-Report output is written to `coverage/`.
+Report output is written to `coverage/`. Open `coverage/lcov-report/index.html` locally for the HTML report.
 
 **Node version note:** CI uses Node 20. Vitest coverage works reliably on Node 20. On Node 24, if coverage collection fails due to a `test-exclude` / `minimatch` issue, use Node 20 locally for `npm run test:coverage`.
 
@@ -124,12 +185,11 @@ This runs `test:coverage`, then `build:e2e`, then `test:e2e:serve`.
 
 [Dependabot](https://docs.github.com/en/code-security/dependabot) opens weekly pull requests for npm packages and GitHub Actions (see [`.github/dependabot.yml`](.github/dependabot.yml)). Review security alerts on the repository **Security** tab and merge Dependabot PRs after CI passes.
 
-**Merge tips (post-Vite):**
+**Merge tips:**
 
 - Prefer **small, focused** Dependabot PRs over large grouped bumps.
-- The grouped `development-dependencies` PR **excludes** `eslint`, `typescript`, and related packages so they can be upgraded in controlled steps after the flat ESLint config lands (Phase 6).
-- Do **not** merge mega-bumps that combine ESLint 10 + TypeScript 6 + Vite 8 in one PR — upgrade toolchain packages one at a time and run `npm run test:all` after each.
-- Close or defer outdated grouped PRs (e.g. ones that still reference `eslint-config-react-app`) once Phase 6 is merged.
+- The grouped `development-dependencies` PR excludes toolchain packages such as `eslint` and `typescript` so they can be upgraded deliberately.
+- Do **not** merge mega-bumps that combine major ESLint + TypeScript + Vite upgrades in one PR — upgrade them one at a time and run `npm run test:all` after each.
 
 ## Deployment
 
@@ -137,11 +197,11 @@ The project deploys to GitHub Pages via a unified CI workflow ([`.github/workflo
 
 ### CI pipeline
 
-The workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) runs five jobs on every `pull_request` and `push` to `main`:
+The workflow runs five jobs on every `pull_request` and `push` to `main`:
 
 | Job | Runner | Steps |
 | --- | --- | --- |
-| `build_and_unit` | `ubuntu-latest` | `npm ci` → Vitest with coverage → Vite production build → upload `dist/`, `coverage/`, and test summary artifacts |
+| `build_and_unit` | `ubuntu-latest` | `npm ci` → lint → typecheck → Vitest with coverage → Vite production build → upload `dist/`, `coverage/`, and test summary artifacts |
 | `e2e` | Playwright Docker (`v1.61.1-jammy`) | Download `dist/` → `npm run test:e2e:serve` → upload Playwright report and e2e summary |
 | `deploy` | `ubuntu-latest` | Embed report in `dist/reports/` → deploy to GitHub Pages (only on successful `main` push) → upload deploy summary |
 | `publish_failure_traces` | `ubuntu-latest` | On e2e failure only: copy `trace.zip` files to `failures/<run_id>/` on GitHub Pages so trace viewer links work without auth |
@@ -169,8 +229,7 @@ Every workflow run publishes downloadable artifacts and a job summary on the Act
 | --- | --- |
 | App | [https://solcala.github.io/cc_jammming_music/](https://solcala.github.io/cc_jammming_music/) |
 | Playwright report (after successful deploy) | [https://solcala.github.io/cc_jammming_music/reports/index.html](https://solcala.github.io/cc_jammming_music/reports/index.html) |
-
-Open `coverage/lcov-report/index.html` locally after `npm run test:coverage` for the Vitest HTML report.
+| Actions / CI | [https://github.com/solcala/cc_jammming_music/actions](https://github.com/solcala/cc_jammming_music/actions) |
 
 ### Slack CI notifications
 
@@ -274,11 +333,6 @@ Low-level helpers live in [`src/util/pkce.ts`](src/util/pkce.ts). [`src/util/Spo
 2. **Redirect URIs**: register both local and production URLs exactly (see table above).
 3. Env vars: `VITE_SPOTIFY_CLIENT_ID`, `VITE_REDIRECT_URI` (must match a registered redirect URI).
 
-## Tech Stack
+## License
 
-- React 18 + Vite
-- Spotify Web API (Authorization Code + PKCE)
-- Vitest + React Testing Library (unit tests)
-- Playwright (end-to-end tests)
-- GitHub Actions (CI/CD)
-- GitHub Pages (hosting)
+This project is licensed under the [MIT License](LICENSE).
