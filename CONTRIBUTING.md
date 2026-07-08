@@ -98,3 +98,7 @@ Include:
 - Expected vs actual behavior
 - Browser / Node version when relevant
 - Whether the issue is local, CI, or the [live GitHub Pages app](https://solcala.github.io/cc_jammming_music/)
+
+## License
+
+By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE).

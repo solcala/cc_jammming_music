@@ -5,12 +5,19 @@
 [![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vitest](https://img.shields.io/badge/Vitest-unit%20%2B%20coverage-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Search the Spotify catalog, build a playlist in the browser, and save it to your Spotify account.
 
 **Live app:** [https://solcala.github.io/cc_jammming_music/](https://solcala.github.io/cc_jammming_music/)  
 **Playwright report (after successful `main` deploy):** [https://solcala.github.io/cc_jammming_music/reports/index.html](https://solcala.github.io/cc_jammming_music/reports/index.html)  
 **Contributing:** see [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Screenshots
+
+| Desktop | Mobile |
+| --- | --- |
+| ![Jammming desktop](docs/screenshots/desktop/app.png) | ![Jammming mobile](docs/screenshots/mobile/app.png) |
 
 ## Features
 
@@ -325,3 +332,7 @@ Low-level helpers live in [`src/util/pkce.ts`](src/util/pkce.ts). [`src/util/Spo
 1. App type: **Web API** public client (no client secret in the browser).
 2. **Redirect URIs**: register both local and production URLs exactly (see table above).
 3. Env vars: `VITE_SPOTIFY_CLIENT_ID`, `VITE_REDIRECT_URI` (must match a registered redirect URI).
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
