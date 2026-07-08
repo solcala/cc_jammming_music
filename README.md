@@ -9,7 +9,8 @@
 Search the Spotify catalog, build a playlist in the browser, and save it to your Spotify account.
 
 **Live app:** [https://solcala.github.io/cc_jammming_music/](https://solcala.github.io/cc_jammming_music/)  
-**Playwright report (after successful `main` deploy):** [https://solcala.github.io/cc_jammming_music/reports/index.html](https://solcala.github.io/cc_jammming_music/reports/index.html)
+**Playwright report (after successful `main` deploy):** [https://solcala.github.io/cc_jammming_music/reports/index.html](https://solcala.github.io/cc_jammming_music/reports/index.html)  
+**Contributing:** see [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Features
 
