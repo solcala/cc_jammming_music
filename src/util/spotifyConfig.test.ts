@@ -48,11 +48,11 @@ describe('getSpotifyConfigError', () => {
     expect(getSpotifyConfigError()).toMatch(/not configured/i);
   });
 
-  it('rejects the CI fallback client ID', () => {
+  it('allows the CI/E2E fallback client ID used with mocked Spotify', () => {
     vi.stubEnv('VITE_SPOTIFY_CLIENT_ID', 'test-client-id');
     vi.stubEnv('VITE_REDIRECT_URI', 'http://127.0.0.1:3000/cc_jammming_music/');
 
-    expect(getSpotifyConfigError()).toMatch(/not configured/i);
+    expect(getSpotifyConfigError()).toBeNull();
   });
 
   it('requires a redirect URI', () => {
@@ -72,7 +72,7 @@ describe('getSpotifyConfigError', () => {
     expect(getSpotifyConfigError()).toMatch(/redirect uri/i);
   });
 
-  it('normalizes redirect URIs with a trailing slash and replaces localhost', () => {
+  it('rewrites localhost redirect URIs in development', () => {
     vi.stubEnv('VITE_SPOTIFY_CLIENT_ID', '0123456789abcdef0123456789abcdef');
     vi.stubEnv('VITE_REDIRECT_URI', 'http://localhost:3000/cc_jammming_music');
 

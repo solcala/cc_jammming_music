@@ -100,6 +100,21 @@ function formatDuration(durationMs) {
   return `${minutes}m ${remainder}s`;
 }
 
+const SLACK_SECTION_TEXT_LIMIT = 2900;
+const SLACK_MAX_FAILED_TEST_LINES = 12;
+const SLACK_MAX_TRACE_LINKS = 5;
+
+function truncateSectionText(text) {
+  if (text.length <= SLACK_SECTION_TEXT_LIMIT) {
+    return text;
+  }
+  return `${text.slice(0, SLACK_SECTION_TEXT_LIMIT - 1)}…`;
+}
+
+function uniqueStrings(values) {
+  return [...new Set((values || []).filter(Boolean))];
+}
+
 function buildBlocks(report) {
   const totals = aggregateTotals(report);
   const allGreen = totals.failed === 0 && totals.failedJobs === 0;
@@ -141,36 +156,53 @@ function buildBlocks(report) {
   if (jobLines.length > 0) {
     blocks.push({
       type: 'section',
-      text: { type: 'mrkdwn', text: jobLines.join('\n') },
+      text: { type: 'mrkdwn', text: truncateSectionText(jobLines.join('\n')) },
     });
   }
 
   const e2eJob = report.jobs?.e2e;
   if (e2eJob && readNumber(e2eJob.failed) > 0) {
     const failureLines = [];
+    const failedTests = uniqueStrings(e2eJob.failedTests);
 
-    if (Array.isArray(e2eJob.failedTests) && e2eJob.failedTests.length > 0) {
+    if (failedTests.length > 0) {
       failureLines.push('*Failed Playwright tests*');
-      failureLines.push(...e2eJob.failedTests.map((title) => `• ${title}`));
+      const shown = failedTests.slice(0, SLACK_MAX_FAILED_TEST_LINES);
+      failureLines.push(...shown.map((title) => `• ${title}`));
+      if (failedTests.length > shown.length) {
+        failureLines.push(
+          `• …and ${failedTests.length - shown.length} more (see workflow run)`,
+        );
+      }
     }
 
-    if (Array.isArray(e2eJob.traceViewerUrls) && e2eJob.traceViewerUrls.length > 0) {
+    const traceUrls = uniqueStrings(e2eJob.traceViewerUrls).slice(
+      0,
+      SLACK_MAX_TRACE_LINKS,
+    );
+    if (traceUrls.length > 0) {
       failureLines.push('*Trace viewer*');
       failureLines.push(
-        ...e2eJob.traceViewerUrls.map(
-          (url, index) => `<${url}|Open trace ${index + 1} in Playwright Trace Viewer>`,
+        ...traceUrls.map(
+          (url, index) =>
+            `<${url}|Open trace ${index + 1} in Playwright Trace Viewer>`,
         ),
       );
     }
 
     if (e2eJob.htmlReportUrl) {
-      failureLines.push(`<${e2eJob.htmlReportUrl}|Download Playwright report artifact>`);
+      failureLines.push(
+        `<${e2eJob.htmlReportUrl}|Download Playwright report artifact>`,
+      );
     }
 
     if (failureLines.length > 0) {
       blocks.push({
         type: 'section',
-        text: { type: 'mrkdwn', text: failureLines.join('\n') },
+        text: {
+          type: 'mrkdwn',
+          text: truncateSectionText(failureLines.join('\n')),
+        },
       });
     }
   }

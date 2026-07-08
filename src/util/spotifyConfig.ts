@@ -1,6 +1,5 @@
 const PLACEHOLDER_CLIENT_IDS = new Set([
   '',
-  'test-client-id',
   'your_spotify_client_id_here',
 ]);
 
@@ -15,7 +14,9 @@ function readEnv(name: string): string {
 
 function normalizeRedirectUri(uri: string): string {
   const url = new URL(uri);
-  if (url.hostname === 'localhost') {
+  // Only rewrite localhost in local development. CI Playwright serves on
+  // localhost and mocks Spotify; rewriting there breaks redirect_uri parity.
+  if (import.meta.env.DEV && url.hostname === 'localhost') {
     url.hostname = '127.0.0.1';
   }
   if (!url.pathname.endsWith('/')) {
@@ -76,15 +77,19 @@ export function getSpotifyConfigError(): string | null {
   }
 
   try {
-    const redirectUrl = new URL(redirectUri);
-    if (redirectUrl.hostname === 'localhost') {
-      return 'Spotify no longer allows localhost redirect URIs. Use http://127.0.0.1:3000/cc_jammming_music/ in .env and the Spotify Dashboard.';
-    }
+    new URL(redirectUri);
   } catch {
     return 'VITE_REDIRECT_URI must be a valid URL that matches your Spotify app redirect URI exactly.';
   }
 
+  // Localhost redirect checks are only for interactive local development.
+  // CI Playwright builds use localhost + mocked Spotify and must stay unblocked.
   if (import.meta.env.DEV && typeof window !== 'undefined') {
+    const redirectUrl = new URL(redirectUri);
+    if (redirectUrl.hostname === 'localhost') {
+      return 'Spotify no longer allows localhost redirect URIs. Use http://127.0.0.1:3000/cc_jammming_music/ in .env and the Spotify Dashboard.';
+    }
+
     if (window.location.hostname === 'localhost') {
       const port = window.location.port || '3000';
       return `Open this app at http://127.0.0.1:${port}/cc_jammming_music/ instead of localhost. Spotify OAuth requires 127.0.0.1.`;
