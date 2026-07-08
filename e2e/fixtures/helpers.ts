@@ -19,3 +19,23 @@ export async function savePlaylist(page: Page, name: string) {
   await page.getByTestId('playlist-title-input').fill(name);
   await page.getByTestId('save-playlist-button').click();
 }
+
+export async function expectNoHorizontalOverflow(page: Page) {
+  const hasOverflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
+  expect(hasOverflow).toBe(false);
+}
+
+export async function expectMatchingControlWidths(
+  page: Page,
+  firstTestId: string,
+  secondTestId: string,
+) {
+  const firstBox = await page.getByTestId(firstTestId).boundingBox();
+  const secondBox = await page.getByTestId(secondTestId).boundingBox();
+
+  expect(firstBox).not.toBeNull();
+  expect(secondBox).not.toBeNull();
+  expect(secondBox!.width).toBeCloseTo(firstBox!.width, 0);
+}

@@ -15,10 +15,10 @@ import {
   readCodeVerifier,
   saveCodeVerifier,
 } from './pkce';
+import { getSpotifyConfigError, getSpotifyRuntimeConfig } from './spotifyConfig';
 
-const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-const redirectUri = import.meta.env.VITE_REDIRECT_URI;
 let accessToken: string | undefined;
+let pendingTokenExchange: Promise<string | undefined> | undefined;
 
 function mapTrack(track: {
   id: string;
@@ -42,10 +42,12 @@ function clearAuthorizationUrl(): void {
 
 const Spotify = {
   async loadSpotifyLoginPage(): Promise<void> {
-    if (!clientId || !redirectUri) {
-      return;
+    const configError = getSpotifyConfigError();
+    if (configError) {
+      throw new Error(configError);
     }
 
+    const { clientId, redirectUri } = getSpotifyRuntimeConfig();
     const verifier = generateCodeVerifier();
     saveCodeVerifier(verifier);
     const challenge = await generateCodeChallenge(verifier);
@@ -57,6 +59,15 @@ const Spotify = {
   },
 
   async checkAccessToken(): Promise<string | undefined> {
+    if (accessToken) {
+      return accessToken;
+    }
+
+    if (pendingTokenExchange) {
+      return pendingTokenExchange;
+    }
+
+    const { clientId, redirectUri } = getSpotifyRuntimeConfig();
     const code = parseAuthorizationCode(window.location.href);
     if (!code || !clientId || !redirectUri) {
       return undefined;
@@ -64,29 +75,36 @@ const Spotify = {
 
     const verifier = readCodeVerifier();
     if (!verifier) {
-      return undefined;
+      throw new Error(
+        'Spotify sign-in session expired. Search again to restart sign-in.',
+      );
     }
 
-    try {
-      const tokenResponse = await exchangeAuthorizationCode({
-        clientId,
-        redirectUri,
-        code,
-        codeVerifier: verifier,
-      });
+    // Authorization codes are single-use. React Strict Mode remounts effects in
+    // development, so share one in-flight exchange instead of consuming the
+    // code twice (which surfaces "Invalid authorization code").
+    pendingTokenExchange = (async () => {
+      try {
+        const tokenResponse = await exchangeAuthorizationCode({
+          clientId,
+          redirectUri,
+          code,
+          codeVerifier: verifier,
+        });
 
-      accessToken = tokenResponse.access_token;
-      window.setTimeout(() => {
-        accessToken = '';
-      }, tokenResponse.expires_in * 1000);
-      clearCodeVerifier();
-      clearAuthorizationUrl();
-      return accessToken;
-    } catch (error) {
-      console.log(error);
-      clearCodeVerifier();
-      return undefined;
-    }
+        accessToken = tokenResponse.access_token;
+        window.setTimeout(() => {
+          accessToken = '';
+        }, tokenResponse.expires_in * 1000);
+        clearCodeVerifier();
+        clearAuthorizationUrl();
+        return accessToken;
+      } finally {
+        pendingTokenExchange = undefined;
+      }
+    })();
+
+    return pendingTokenExchange;
   },
 
   async getAccessToken(): Promise<string | undefined> {
@@ -95,8 +113,8 @@ const Spotify = {
         return accessToken;
       }
 
-      if (parseAuthorizationCode(window.location.href)) {
-        return this.checkAccessToken();
+      if (parseAuthorizationCode(window.location.href) || pendingTokenExchange) {
+        return await this.checkAccessToken();
       }
 
       await this.loadSpotifyLoginPage();
@@ -112,6 +130,12 @@ const Spotify = {
       if (!term) {
         return undefined;
       }
+
+      const configError = getSpotifyConfigError();
+      if (configError) {
+        return { error: true, message: configError };
+      }
+
       const token = await this.getAccessToken();
       const response = await fetch(
         `https://api.spotify.com/v1/search?type=track&q=${encodeURIComponent(term)}`,

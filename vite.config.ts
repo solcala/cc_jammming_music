@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/cc_jammming_music/',
   server: {
+    host: '127.0.0.1',
     port: 3000,
   },
   test: {

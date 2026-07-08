@@ -37,7 +37,7 @@ it('Track is displayed with remove button', () => {
     />,
   );
   const button = screen.getByRole('button');
-  expect(button).toHaveTextContent('-');
+  expect(button).toHaveTextContent('−');
 });
 
 it('should displayed track name', () => {
@@ -49,8 +49,9 @@ it('should displayed track name', () => {
       removeFromPlaylist={() => {}}
     />,
   );
-  const heading = screen.getByRole('heading');
-  expect(heading).toHaveTextContent(testingTrack.name);
+  expect(screen.getByTestId('track-name-track-1')).toHaveTextContent(
+    testingTrack.name,
+  );
 });
 
 it('should displayed track artist', () => {
@@ -62,8 +63,9 @@ it('should displayed track artist', () => {
       removeFromPlaylist={() => {}}
     />,
   );
-  const textArtist = screen.getByRole('paragraph');
-  expect(textArtist).toHaveTextContent(testingTrack.artist);
+  expect(screen.getByTestId('track-artist-track-1')).toHaveTextContent(
+    testingTrack.artist,
+  );
 });
 
 it('calls addToPlaylist when + is clicked', async () => {

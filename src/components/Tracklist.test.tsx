@@ -30,10 +30,10 @@ it('renders a track for each item in the tracks array', () => {
       removeFromPlaylist={() => {}}
     />,
   );
-  const headings = screen.getAllByRole('heading');
-  expect(headings).toHaveLength(2);
-  expect(headings[0]).toHaveTextContent('Song One');
-  expect(headings[1]).toHaveTextContent('Song Two');
+  expect(screen.getByTestId('track-item-1')).toBeInTheDocument();
+  expect(screen.getByTestId('track-item-2')).toBeInTheDocument();
+  expect(screen.getByTestId('track-name-1')).toHaveTextContent('Song One');
+  expect(screen.getByTestId('track-name-2')).toHaveTextContent('Song Two');
 });
 
 it('renders nothing when tracks is undefined', () => {

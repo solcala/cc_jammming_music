@@ -28,17 +28,28 @@ function Track({
 
   return (
     <div className={styles.Track} data-testid={`track-item-${trackId}`}>
-      <div>
-        <h3 data-testid={`track-name-${trackId}`}>{track.name}</h3>
-        <p data-testid={`track-artist-${trackId}`}>{track.artist}</p>
+      <div className={styles.trackInfo}>
+        <p className={styles.trackLine}>
+          <span data-testid={`track-artist-${trackId}`}>{track.artist}</span>
+          <span aria-hidden="true"> - </span>
+          <span>{track.album}</span>
+          <span aria-hidden="true"> - </span>
+          <span data-testid={`track-name-${trackId}`}>{track.name}</span>
+        </p>
       </div>
       <button
+        className={styles.actionBtn}
         onClick={handleClick}
+        aria-label={
+          addRemoveTrack
+            ? `Add ${track.name} to playlist`
+            : `Remove ${track.name} from playlist`
+        }
         data-testid={
           addRemoveTrack ? `track-add-${trackId}` : `track-remove-${trackId}`
         }
       >
-        {addRemoveTrack ? '+' : '-'}
+        {addRemoveTrack ? '+' : '−'}
       </button>
     </div>
   );

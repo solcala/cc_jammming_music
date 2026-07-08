@@ -113,7 +113,22 @@ export async function exchangeAuthorizationCode(
   });
 
   if (!response.ok) {
-    throw new Error(`Spotify token exchange failed (${response.status})`);
+    const errorBody = await response.text();
+    let message = `Spotify sign-in failed (${response.status})`;
+
+    try {
+      const json = JSON.parse(errorBody) as {
+        error?: string;
+        error_description?: string;
+      };
+      message = json.error_description || json.error || message;
+    } catch {
+      if (errorBody.trim()) {
+        message = errorBody.trim();
+      }
+    }
+
+    throw new Error(message);
   }
 
   return response.json() as Promise<SpotifyTokenResponse>;
