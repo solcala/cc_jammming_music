@@ -37,7 +37,7 @@ it('Track is displayed with remove button', () => {
     />,
   );
   const button = screen.getByRole('button');
-  expect(button).toHaveTextContent('-');
+  expect(button).toHaveTextContent('−');
 });
 
 it('should displayed track name', () => {
