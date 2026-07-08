@@ -1,10 +1,12 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import './App.css';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import SearchResults from './components/SearchResults';
 import Playlist from './components/Playlist';
 import Spotify from './util/Spotify';
+import { parseAuthorizationCode } from './util/pkce';
+import { getSpotifyConfigError } from './util/spotifyConfig';
 import type { Track } from './types/spotify';
 
 function App() {
@@ -17,6 +19,30 @@ function App() {
   const [playlistTracks, setPlaylistTracks] = useState<Track[]>([]);
   const [message, setMessage] = useState('');
   const [searchApiError, setSearchApiError] = useState('');
+  const [authError, setAuthError] = useState('');
+  const configError = getSpotifyConfigError();
+
+  useEffect(() => {
+    if (configError || !parseAuthorizationCode(window.location.href)) {
+      return;
+    }
+
+    void Spotify.checkAccessToken()
+      .then((token) => {
+        if (!token) {
+          setAuthError(
+            'Spotify sign-in could not be completed. Search again to retry.',
+          );
+        }
+      })
+      .catch((error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Spotify sign-in failed. Search again to retry.';
+        setAuthError(message);
+      });
+  }, [configError]);
 
   const handleSearchByChange = (value: string) => {
     setSearchBy(value);
@@ -41,7 +67,9 @@ function App() {
     Spotify.search(searchBy)
       .then((results) => {
         if (results && 'error' in results) {
-          setSearchApiError('Unable to search right now. Please try again.');
+          setSearchApiError(
+            results.message || 'Unable to search right now. Please try again.',
+          );
           setSearchResults([]);
           return;
         }
@@ -98,6 +126,15 @@ function App() {
             setSearchBy={handleSearchByChange}
             isSearching={isSearching}
           />
+          {(configError || authError) && (
+            <p
+              className="searchApiError"
+              role="alert"
+              data-testid="spotify-config-error"
+            >
+              {configError || authError}
+            </p>
+          )}
           {searchApiError && (
             <p
               className="searchApiError"

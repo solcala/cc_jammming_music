@@ -1,16 +1,24 @@
-header {
-  background-color: var(--color-surface-dark);
+.header {
+  background: transparent;
   color: var(--color-text-on-dark);
   width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
 }
 
-h1 {
+.title {
+  width: 100%;
+  max-width: var(--content-column-max-width);
   min-height: var(--header-min-height);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   font-size: var(--font-size-xl);
+  font-weight: 700;
   line-height: var(--line-height-tight);
   padding: var(--space-sm) var(--space-md);
+  margin: 0;
 }

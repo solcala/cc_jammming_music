@@ -38,7 +38,7 @@ A React web application that lets you search the Spotify catalog, build custom p
     npm start
     ```
 
-Open [http://localhost:3000/cc_jammming_music/](http://localhost:3000/cc_jammming_music/) in your browser.
+Open [http://127.0.0.1:3000/cc_jammming_music/](http://127.0.0.1:3000/cc_jammming_music/) in your browser (Spotify does not allow `localhost` redirect URIs).
 
 ## Available Scripts
 
@@ -77,6 +77,12 @@ Playwright tests mock all Spotify API calls, so no credentials are required.
 ```bash
 npx playwright install chromium
 npm run test:e2e
+```
+
+**Mobile smoke tests** (Pixel 5 viewport, critical flows only):
+
+```bash
+npm run test:ui:mobile
 ```
 
 **CI / production build** (serves `dist/` at the GitHub Pages subpath):
@@ -214,8 +220,10 @@ Use a **public** Spotify app (no client secret). PKCE is designed for browser-on
 
     | Environment | `VITE_REDIRECT_URI` |
     | --- | --- |
-    | Local dev (`npm start`) | `http://localhost:3000/cc_jammming_music/` |
+    | Local dev (`npm start`) | `http://127.0.0.1:3000/cc_jammming_music/` |
     | GitHub Pages (production) | `https://solcala.github.io/cc_jammming_music/` |
+
+    Spotify no longer accepts `localhost` redirect URIs. Use `127.0.0.1` and open the app at that same address in your browser (not `http://localhost:...`), so the PKCE session survives the OAuth redirect.
 
 4. Save settings. Spotify redirects back with `?code=` in the query string after login — not `#access_token=` in the hash.
 5. Copy the **Client ID** into `.env` locally (`VITE_SPOTIFY_CLIENT_ID`) and into the `VITE_SPOTIFY_CLIENT_ID` GitHub Actions secret for production builds.

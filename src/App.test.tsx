@@ -29,8 +29,25 @@ const mockedSpotify = Spotify as Mocked<typeof Spotify>;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.stubEnv('VITE_SPOTIFY_CLIENT_ID', '0123456789abcdef0123456789abcdef');
+  vi.stubEnv('VITE_REDIRECT_URI', 'http://127.0.0.1:3000/cc_jammming_music/');
+  Object.defineProperty(window, 'location', {
+    value: {
+      href: 'http://127.0.0.1:3000/cc_jammming_music/',
+      origin: 'http://127.0.0.1:3000',
+      hostname: '127.0.0.1',
+      port: '3000',
+    },
+    writable: true,
+    configurable: true,
+  });
   mockedSpotify.search.mockResolvedValue(mockTracks);
   mockedSpotify.savePlaylist.mockResolvedValue(201);
+  mockedSpotify.checkAccessToken.mockResolvedValue(undefined);
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 async function searchForTracks(

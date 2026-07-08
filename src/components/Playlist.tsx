@@ -54,14 +54,7 @@ function Playlist({
       id="playlist-section"
       data-testid="playlist-section"
     >
-      <p
-        id="message"
-        data-testid="playlist-message"
-        role="status"
-        aria-live="polite"
-      >
-        {message}
-      </p>
+      <h2 className={styles.panelTitle}>Add a playlist title</h2>
       <input
         aria-label="playlist-title"
         className={styles.playlistName}
@@ -72,6 +65,15 @@ function Playlist({
         type="text"
         placeholder="Add a playlist title"
       />
+      <p
+        id="message"
+        className={styles.message}
+        data-testid="playlist-message"
+        role="status"
+        aria-live="polite"
+      >
+        {message}
+      </p>
       <div className={styles.trackList}>
         <Tracklist
           tracks={playlistTracks}

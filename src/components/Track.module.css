@@ -1,13 +1,15 @@
 .Track {
   width: 100%;
-  background-color: var(--color-track-bg);
-  color: var(--color-track-text);
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-sm) 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
-  border-radius: var(--radius-md);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.Track:last-child {
+  border-bottom: none;
 }
 
 .trackInfo {
@@ -15,36 +17,30 @@
   min-width: 0;
 }
 
-.trackInfo h3 {
-  font-size: var(--font-size-base);
+.trackLine {
+  font-size: var(--font-size-sm);
   line-height: var(--line-height-tight);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.trackInfo p {
-  font-size: var(--font-size-sm);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: var(--color-text-on-dark);
 }
 
 .actionBtn {
   flex-shrink: 0;
-  border: none;
-  border-radius: var(--radius-md);
-  background-color: var(--color-track-action-bg);
-  color: var(--color-track-action-text);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background-color: transparent;
+  color: var(--color-text-on-dark);
   min-width: var(--touch-target-min);
   min-height: var(--touch-target-min);
-  padding: var(--space-sm);
+  padding: 0;
   font-size: var(--font-size-lg);
   line-height: 1;
   cursor: pointer;
 }
 
 .actionBtn:focus {
-  outline: 2px solid var(--color-track-text);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }

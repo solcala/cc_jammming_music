@@ -19,19 +19,23 @@ function SearchResults({
 
   return (
     <div className={styles.searchResults}>
-      <h2>Results</h2>
-      {showEmptyState ? (
-        <p data-testid="search-empty-message">No results found</p>
-      ) : (
-        <div className={styles.trackList}>
-          <Tracklist
-            tracks={results}
-            addRemoveTrack={addRemoveTrack}
-            addToPlaylist={addToPlaylist}
-            removeFromPlaylist={() => {}}
-          />
-        </div>
-      )}
+      <h2 className={styles.panelTitle}>Results</h2>
+      <div className={styles.resultsBody}>
+        {showEmptyState ? (
+          <p className={styles.emptyMessage} data-testid="search-empty-message">
+            No results found
+          </p>
+        ) : (
+          <div className={styles.trackList}>
+            <Tracklist
+              tracks={results}
+              addRemoveTrack={addRemoveTrack}
+              addToPlaylist={addToPlaylist}
+              removeFromPlaylist={() => {}}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

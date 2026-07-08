@@ -8,6 +8,7 @@ export interface Track {
 
 export interface SearchError {
   error: true;
+  message?: string;
 }
 
 export type SearchResult = Track[] | SearchError | undefined;

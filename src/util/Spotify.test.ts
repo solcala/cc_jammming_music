@@ -42,7 +42,7 @@ const seedAccessToken = async () => {
     PKCE_CODE_VERIFIER_STORAGE_KEY,
     MOCK_CODE_VERIFIER,
   );
-  window.location.href = 'http://localhost/?code=auth-code-123';
+  window.location.href = 'http://127.0.0.1:3000/?code=auth-code-123';
   mockFetch.mockResolvedValueOnce({
     ok: true,
     json: async () => mockTokenResponse,
@@ -74,15 +74,20 @@ beforeEach(async () => {
   mockSessionStorage();
 
   Object.defineProperty(window, 'location', {
-    value: { href: 'http://localhost/' },
+    value: {
+      href: 'http://127.0.0.1:3000/',
+      origin: 'http://127.0.0.1:3000',
+      hostname: '127.0.0.1',
+      port: '3000',
+    },
     writable: true,
     configurable: true,
   });
 
   window.history.pushState = vi.fn();
 
-  vi.stubEnv('VITE_SPOTIFY_CLIENT_ID', 'test-client-id');
-  vi.stubEnv('VITE_REDIRECT_URI', 'http://localhost:3000');
+  vi.stubEnv('VITE_SPOTIFY_CLIENT_ID', '0123456789abcdef0123456789abcdef');
+  vi.stubEnv('VITE_REDIRECT_URI', 'http://127.0.0.1:3000/cc_jammming_music/');
 
   Spotify = (await import('./Spotify')).default;
 });
@@ -100,7 +105,7 @@ describe('checkAccessToken', () => {
       PKCE_CODE_VERIFIER_STORAGE_KEY,
       MOCK_CODE_VERIFIER,
     );
-    window.location.href = 'http://localhost/?code=abc123';
+    window.location.href = 'http://127.0.0.1:3000/?code=abc123';
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockTokenResponse,
@@ -125,12 +130,42 @@ describe('checkAccessToken', () => {
       window.sessionStorage.getItem(PKCE_CODE_VERIFIER_STORAGE_KEY),
     ).toBeNull();
   });
+
+  it('shares one token exchange when called concurrently', async () => {
+    window.sessionStorage.setItem(
+      PKCE_CODE_VERIFIER_STORAGE_KEY,
+      MOCK_CODE_VERIFIER,
+    );
+    window.location.href = 'http://127.0.0.1:3000/?code=abc123';
+
+    let resolveToken!: (value: Response) => void;
+    mockFetch.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveToken = resolve;
+        }),
+    );
+
+    const first = Spotify.checkAccessToken();
+    const second = Spotify.checkAccessToken();
+
+    resolveToken({
+      ok: true,
+      json: async () => mockTokenResponse,
+    } as Response);
+
+    await expect(Promise.all([first, second])).resolves.toEqual([
+      MOCK_ACCESS_TOKEN,
+      MOCK_ACCESS_TOKEN,
+    ]);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('getAccessToken', () => {
   it('returns cached token without re-exchanging the authorization code', async () => {
     await seedAccessToken();
-    window.location.href = 'http://localhost/';
+    window.location.href = 'http://127.0.0.1:3000/';
 
     expect(await Spotify.getAccessToken()).toBe(MOCK_ACCESS_TOKEN);
     expect(await Spotify.getAccessToken()).toBe(MOCK_ACCESS_TOKEN);

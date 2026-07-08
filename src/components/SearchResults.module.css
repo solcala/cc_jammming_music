@@ -1,19 +1,40 @@
 .searchResults {
-  background-color: var(--color-surface-dark);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  background: var(--color-surface-glass);
   color: var(--color-text-on-dark);
   padding: var(--space-md);
   width: 100%;
-  border-radius: var(--radius-md);
+  min-height: var(--panel-min-height);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-panel);
 }
 
-.searchResults h2 {
-  margin-bottom: var(--space-sm);
+.panelTitle {
   font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.resultsBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: var(--touch-target-min);
+  max-height: var(--panel-list-max-height);
+  overflow-y: auto;
 }
 
 .trackList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: 0;
+  flex: 1;
+}
+
+.emptyMessage {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  padding: var(--space-sm) 0;
 }

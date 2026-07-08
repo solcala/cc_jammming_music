@@ -213,6 +213,11 @@ describe('exchangeAuthorizationCode', () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 400,
+      text: async () =>
+        JSON.stringify({
+          error: 'invalid_client',
+          error_description: 'Invalid client',
+        }),
     } as Response);
 
     await expect(
@@ -224,6 +229,6 @@ describe('exchangeAuthorizationCode', () => {
         },
         mockFetch,
       ),
-    ).rejects.toThrow('Spotify token exchange failed (400)');
+    ).rejects.toThrow('Invalid client');
   });
 });
