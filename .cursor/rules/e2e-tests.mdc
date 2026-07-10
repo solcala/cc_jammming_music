@@ -1,16 +1,46 @@
 ---
-description: Playwright e2e test style — keep tests declarative, push setup into fixtures
+description: Playwright e2e style — declarative specs, POM actions, fixtures for setup
 globs: e2e/**/*.ts
 alwaysApply: false
 ---
 
 # E2E test practices
 
-- Keep tests **declarative**: arrange → act → assert. A test body should read like a user story, not implementation logic.
-- **Avoid `if` / branching inside tests** (route handlers, conditionals, loops). Extract that behavior into shared fixtures or helpers instead.
-- Reuse existing mocks (`mockSpotifyApi`, `helpers`) with options rather than duplicating inline `page.route` handlers.
-- Prefer named helpers for repeated flows (`searchAndAddFirstTrack`, `savePlaylist`) and for scenario setup (`mockSpotifyApi(page, { createPlaylistStatus: 500 })`).
-- Put conditional routing, delays, and auth/bootstrap logic in `e2e/fixtures/`, not in spec files.
+Also follow [`.cursor/rules/qa-testing-standards.mdc`](qa-testing-standards.mdc) for contract, POM, and clean-test rules.
+
+## Spec shape
+
+- Keep tests **declarative**: arrange → act → assert. A test body should read like a user story.
+- **Avoid `if` / branching / loops inside tests.** Extract that into `e2e/fixtures/` (or later `e2e/pages/` action helpers).
+- Prefer **atomic** tests that run independently.
+
+## Page Objects (target pattern)
+
+- Put selectors and user actions in `e2e/pages/` (Page Objects).
+- **No `expect` / assertions inside Page Objects.**
+- Specs call page actions, then assert with `expect` in the spec file.
+
+Until page objects exist, keep shared flows in `e2e/fixtures/helpers.ts` but **move assertions out of helpers into specs** when touching those helpers.
+
+## Selectors
+
+- Use **`data-testid`** for interactions and assertions.
+- Reuse existing mocks (`mockSpotifyApi`, auth bootstrap) with options rather than duplicating inline `page.route` handlers.
+
+## Waiting & verification
+
+- **No `waitForTimeout`.** Use `waitForRequest` / `waitForResponse` / `toBeVisible`.
+- After UI actions that call Spotify, **double-verify** network + UI.
+
+## Mocks
+
+- Default happy-path Spotify mocking is allowed for CI.
+- For synthetic edge cases (401, 500, delayed responses), add:
+
+```typescript
+// [QA_AUDIT_REQUIRED]: Mocking 500 on create playlist. Cannot force Spotify server errors in CI.
+await mockSpotifyApi(page, { createPlaylistStatus: 500 });
+```
 
 ```typescript
 // ❌ BAD — branching inside the test
@@ -25,5 +55,7 @@ await page.route('**/api.spotify.com/**', async (route) => {
 // ✅ GOOD — declarative setup via fixture
 await mockSpotifyApi(page, { createPlaylistStatus: 500 });
 await page.getByTestId('save-playlist-button').click();
-await expect(page.getByTestId('playlist-message')).toHaveText('Unable to save playlist. Please try again.');
+await expect(page.getByTestId('playlist-message')).toHaveText(
+  'Unable to save playlist. Please try again.',
+);
 ```

@@ -1,0 +1,84 @@
+---
+description: Quality & Automation Engineering standards for Jammming tests (API contracts, Playwright POM, clean tests)
+globs: "{e2e,src}/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Quality & Automation Engineering Rules
+
+These standards apply when writing or changing unit, API, or Playwright tests.
+
+## Jammming appendix (project-specific)
+
+- This app is a **browser-only SPA** with **no database or first-party backend**.
+- **Reconciliation** means Spotify **API contract + UI state** checks — not SQL.
+- **Default Spotify mocking stays** (`mockSpotifyApi`, `bootstrapSpotifyAuth`) for CI speed and determinism.
+- Add `// [QA_AUDIT_REQUIRED]: ...` only on **synthetic edge mocks** (401, 500, delayed gates) — not on the default happy-path mock.
+- Page Objects live under `e2e/pages/` (introduced in later batches). Until then, keep selectors/actions in fixtures/helpers and **assertions only in `*.spec.ts`**.
+
+## 1. API Testing Standards
+
+### Contract-First
+
+- Use **Zod** schemas for Spotify request/response validation in E2E (and prefer the same shapes for unit fixtures).
+- Canonical mock payloads in `e2e/fixtures/spotify-mocks.ts` must stay aligned with those schemas.
+
+### Data Integrity (Reconciliation)
+
+- After a UI action that triggers Spotify traffic, **double-verify**:
+  1. Outbound request (`waitForRequest` / method / URL / body / auth header)
+  2. UI outcome (`data-testid` visibility / text)
+- Compare API outcomes against **canonical fixtures** (`spotify-mocks.ts`), not a database.
+
+### Error States & Mocks
+
+- Happy-path Spotify routes may remain mocked for CI.
+- For edge cases that cannot be triggered reliably against live Spotify in this environment (forced 500, delayed responses, etc.), mocking is allowed **only with an audit comment**:
+
+```typescript
+// [QA_AUDIT_REQUIRED]: Mocking 500 on create playlist. Cannot force Spotify server errors in CI.
+await mockSpotifyApi(page, { createPlaylistStatus: 500 });
+```
+
+## 2. UI Testing Standards (Playwright)
+
+### POM Pattern (Strict)
+
+- Page Objects are for **selectors and actions only**.
+- **NO ASSERTIONS** inside Page Objects (`e2e/pages/**`).
+- Assertions belong only in `*.spec.ts` files (or assertion helpers imported exclusively by specs — never by page objects).
+
+### Selector Stability
+
+- Prefer **`data-testid` only** for E2E interactions and assertions.
+- Keep ARIA roles on components for real accessibility; do not rely on `getByRole` in E2E once testids cover the same elements.
+
+### Double-Verification
+
+- Always verify state changes after a UI action that hits the network (API request + UI).
+- Client-only actions (e.g. add/remove track in memory) still need a clear UI state assertion.
+
+## 3. General Testing Principles (Clean Test Rule)
+
+- **NO logic in tests:** Do not use `if`, `for`, or complex conditionals inside `*.spec.ts`.
+- If behavior branches, **split into two distinct tests**.
+- Put route handlers, request tracking, and delays in `e2e/fixtures/`.
+- **Atomic tests:** independent, idempotent, runnable in isolation.
+- **No `waitForTimeout`.** Use `waitForRequest` / `waitForResponse` / `expect(...).toBeVisible()` (and related Playwright auto-waiting).
+
+## 4. AI-Native Workflow (Self-Audit)
+
+When generating or changing a test:
+
+1. **Explain the why** — short note of the business flow under test (search → add → save, etc.).
+2. **Audit mocks** — if a non-default mock is used, justify why the live environment cannot trigger it.
+3. **Traceability** — prefer request/response waits and visibility assertions over sleeps.
+
+## Quick checklist
+
+- [ ] Assertions only in specs (not in page objects)
+- [ ] Selectors via `data-testid`
+- [ ] No `if` / loops in specs
+- [ ] No `waitForTimeout`
+- [ ] Network + UI double-check when Spotify is called
+- [ ] `QA_AUDIT_REQUIRED` on synthetic error/delay mocks
