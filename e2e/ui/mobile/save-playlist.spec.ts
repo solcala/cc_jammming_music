@@ -1,6 +1,6 @@
 import { test, expect } from '../../fixtures/test';
 import {
-  expectNoHorizontalOverflow,
+  hasHorizontalOverflow,
   searchAndAddFirstTrack,
   savePlaylist,
 } from '../../fixtures/helpers';
@@ -11,6 +11,6 @@ test.describe('Mobile save playlist', () => {
     await savePlaylist(page, 'Mobile Mix');
 
     await expect(page.getByTestId('playlist-message')).toHaveText('Playlist created');
-    await expectNoHorizontalOverflow(page);
+    expect(await hasHorizontalOverflow(page)).toBe(false);
   });
 });

@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures/test';
-import { expectNoHorizontalOverflow, searchAndAddFirstTrack } from '../../fixtures/helpers';
+import { hasHorizontalOverflow, searchAndAddFirstTrack } from '../../fixtures/helpers';
 
 test.describe('Mobile remove track', () => {
   test('removes a track and disables save when playlist is empty', async ({ page }) => {
@@ -11,6 +11,6 @@ test.describe('Mobile remove track', () => {
 
     await expect(playlist.getByTestId('track-remove-track-1')).not.toBeVisible();
     await expect(page.getByTestId('save-playlist-button')).toBeDisabled();
-    await expectNoHorizontalOverflow(page);
+    expect(await hasHorizontalOverflow(page)).toBe(false);
   });
 });
