@@ -123,6 +123,45 @@ Open [http://127.0.0.1:3000/cc_jammming_music/](http://127.0.0.1:3000/cc_jammmin
 
 ## Testing
 
+Quality standards for this repo are documented in:
+
+- [`.cursor/rules/qa-testing-standards.mdc`](.cursor/rules/qa-testing-standards.mdc) — API contracts, Playwright POM, clean tests, mock audit comments
+- [`.cursor/rules/e2e-tests.mdc`](.cursor/rules/e2e-tests.mdc) — Playwright-specific style
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — contributor testing checklist
+
+`npm run lint` also runs `scripts/qa-test-guards.mjs`, which fails if `waitForTimeout` appears under `e2e/` or `expect(` appears under `e2e/pages/`.
+
+### Layout (E2E)
+
+```text
+e2e/
+  pages/           # Page objects (selectors + actions only — no assertions)
+  schemas/         # Zod Spotify request/response contracts
+  fixtures/        # Mocks, auth bootstrap, request-tracking helpers
+  api/             # API reconciliation specs
+  ui/              # Desktop UI specs
+  ui/mobile/       # Mobile smoke specs
+```
+
+```mermaid
+flowchart LR
+  Specs["*.spec.ts"] --> POM["e2e/pages/"]
+  Specs --> Zod["e2e/schemas/"]
+  Specs --> Fixtures["e2e/fixtures/"]
+  POM --> UI["UI actions"]
+  Zod --> Contracts["Request / response parse"]
+  Fixtures --> Mocks["mockSpotifyApi + auth"]
+```
+
+### Contract-first + reconciliation
+
+This app is a browser-only SPA with **no database**. “Reconciliation” means:
+
+1. Validate outbound Spotify traffic (method, URL/query, body, auth) — often with Zod parsers in `e2e/schemas/`
+2. Assert the matching UI outcome via `data-testid`
+
+Default Spotify routes stay mocked for CI speed. Synthetic edge cases (401, 500, delayed responses) must include a `// [QA_AUDIT_REQUIRED]: ...` justification.
+
 ### Unit Tests (Vitest)
 
 ```bash
@@ -131,7 +170,7 @@ npm test
 
 ### End-to-End Tests (Playwright)
 
-Playwright tests mock all Spotify API calls, so no credentials are required.
+Playwright tests mock all Spotify API calls, so no credentials are required. Specs use page objects under `e2e/pages/`; assertions stay in `*.spec.ts`.
 
 **Local development** (Vite dev server at `/cc_jammming_music/`):
 
