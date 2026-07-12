@@ -1,21 +1,29 @@
+import {
+  parseSpotifyPlaylistResponse,
+  parseSpotifySearchResponse,
+  parseSpotifyTokenResponse,
+  parseSpotifyUserResponse,
+  parseTracks,
+} from '../schemas/validate';
+
 export const MOCK_ACCESS_TOKEN = 'mock-access-token';
 export const MOCK_AUTH_CODE = 'mock-auth-code';
 export const MOCK_PKCE_CODE_VERIFIER =
   'e2e-pkce-verifier-abcdefghijklmnopqrstuvwxyz123456';
 
-export const mockTokenResponse = {
+export const mockTokenResponse = parseSpotifyTokenResponse({
   access_token: MOCK_ACCESS_TOKEN,
   token_type: 'Bearer',
   scope: 'playlist-modify-public',
   expires_in: 3600,
-};
+});
 
-export const mockUser = {
+export const mockUser = parseSpotifyUserResponse({
   id: 'test-user-id',
   display_name: 'Test User',
-};
+});
 
-export const mockTracks = [
+const mockTracksRaw = [
   {
     id: 'track-1',
     name: 'Test Song One',
@@ -32,22 +40,26 @@ export const mockTracks = [
   },
 ];
 
-export const mockSearchResponse = {
+export const mockSearchResponse = parseSpotifySearchResponse({
   tracks: {
-    items: mockTracks,
+    items: mockTracksRaw,
   },
-};
+});
 
-export const mockPlaylist = {
+export const mockTracks = mockSearchResponse.tracks!.items;
+
+export const mockPlaylist = parseSpotifyPlaylistResponse({
   id: 'playlist-123',
   name: 'Test Playlist',
   uri: 'spotify:playlist:playlist-123',
-};
+});
 
-export const mappedMockTracks = mockTracks.map((track) => ({
-  id: track.id,
-  name: track.name,
-  artist: track.artists[0].name,
-  album: track.album.name,
-  uri: track.uri,
-}));
+export const mappedMockTracks = parseTracks(
+  mockTracks.map((track) => ({
+    id: track.id,
+    name: track.name,
+    artist: track.artists[0].name,
+    album: track.album.name,
+    uri: track.uri,
+  })),
+);
