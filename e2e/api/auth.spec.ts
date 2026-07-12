@@ -9,6 +9,13 @@ import {
   mockSpotifyTokenExchange,
 } from '../fixtures/auth';
 import { mockSpotifyApi } from '../fixtures/mock-spotify-api';
+import {
+  trackUrlHits,
+  waitForSearchRequest,
+  waitForTokenExchangeRequest,
+} from '../fixtures/request-tracking';
+import { SearchPage } from '../pages';
+import { parseTokenExchangeForm } from '../schemas/validate';
 import { PKCE_CODE_VERIFIER_STORAGE_KEY } from '../../src/util/pkce';
 
 test.describe('Spotify auth', () => {
@@ -32,15 +39,15 @@ test.describe('Spotify auth', () => {
       },
     );
 
-    const tokenRequest = page.waitForRequest(
-      '**/accounts.spotify.com/api/token**',
-    );
+    const tokenRequest = waitForTokenExchangeRequest(page);
     await page.goto(`${baseURL}/?code=${MOCK_AUTH_CODE}`);
 
     const tokenExchange = await tokenRequest;
     expect(tokenExchange.method()).toBe('POST');
-    expect(tokenExchange.postData()).toContain('grant_type=authorization_code');
-    expect(tokenExchange.postData()).toContain(`code=${MOCK_AUTH_CODE}`);
+    expect(parseTokenExchangeForm(tokenExchange.postData())).toMatchObject({
+      grant_type: 'authorization_code',
+      code: MOCK_AUTH_CODE,
+    });
 
     await context.close();
   });
@@ -48,11 +55,10 @@ test.describe('Spotify auth', () => {
   test('sends bearer token on search requests after PKCE callback bootstrap', async ({
     page,
   }) => {
-    // Bootstrap already exchanged the auth code during fixture setup.
-    const searchRequest = page.waitForRequest('**/api.spotify.com/v1/search*');
+    const search = new SearchPage(page);
+    const searchRequest = waitForSearchRequest(page);
 
-    await page.getByTestId('search-by-input').fill('test song');
-    await page.getByTestId('search-button').click();
+    await search.fillAndSearch('test song');
 
     const request = await searchRequest;
     expect(request.headers().authorization).toBe(`Bearer ${MOCK_ACCESS_TOKEN}`);
@@ -61,18 +67,15 @@ test.describe('Spotify auth', () => {
   test('does not redirect to Spotify accounts during mocked tests', async ({
     page,
   }) => {
-    let authorizeRequested = false;
+    const search = new SearchPage(page);
+    const authorizeHits = trackUrlHits(
+      page,
+      'accounts.spotify.com/authorize',
+    );
 
-    page.on('request', (request) => {
-      if (request.url().includes('accounts.spotify.com/authorize')) {
-        authorizeRequested = true;
-      }
-    });
+    await search.fillAndSearch('test song');
 
-    await page.getByTestId('search-by-input').fill('test song');
-    await page.getByTestId('search-button').click();
-
-    await expect(page.getByTestId('track-item-track-1')).toBeVisible();
-    expect(authorizeRequested).toBe(false);
+    await expect(search.trackItem('track-1')).toBeVisible();
+    expect(authorizeHits.count()).toBe(0);
   });
 });

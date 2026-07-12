@@ -77,4 +77,10 @@ export default tseslint.config(
       'testing-library/prefer-screen-queries': 'off',
     },
   },
+  {
+    files: ['scripts/**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 );

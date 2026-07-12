@@ -27,7 +27,7 @@
     "test:ui:mobile": "playwright test --project ui-mobile",
     "test:e2e:ui": "playwright test --ui",
     "test:coverage": "mkdir -p test-results && vitest run --coverage --reporter=json --outputFile=test-results/jest.json",
-    "lint": "eslint src e2e --max-warnings 0",
+    "lint": "eslint src e2e --max-warnings 0 && node scripts/qa-test-guards.mjs",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.e2e.json --noEmit",
     "test:all": "npm run test:coverage && npm run test:e2e:ci"
   },

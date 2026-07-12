@@ -2,10 +2,12 @@ import { z } from 'zod';
 import {
   addTracksRequestSchema,
   createPlaylistRequestSchema,
+  searchQuerySchema,
   spotifyPlaylistResponseSchema,
   spotifySearchResponseSchema,
   spotifyTokenResponseSchema,
   spotifyUserResponseSchema,
+  tokenExchangeFormSchema,
   trackSchema,
   type AddTracksRequest,
   type CreatePlaylistRequest,
@@ -13,6 +15,7 @@ import {
   type SpotifySearchResponse,
   type SpotifyTokenResponse,
   type SpotifyUserResponse,
+  type TokenExchangeForm,
   type Track,
 } from './spotify';
 
@@ -96,4 +99,15 @@ export function parseCreatePlaylistRequest(
 
 export function parseAddTracksRequest(data: unknown): AddTracksRequest {
   return parseWithLabel(addTracksRequestSchema, data, 'AddTracksRequest');
+}
+
+export function parseTokenExchangeForm(
+  postData: string | null,
+): TokenExchangeForm {
+  const params = Object.fromEntries(new URLSearchParams(postData ?? ''));
+  return parseWithLabel(tokenExchangeFormSchema, params, 'TokenExchangeForm');
+}
+
+export function parseSearchQuery(query: string | null): string {
+  return parseWithLabel(searchQuerySchema, query, 'SearchQuery');
 }

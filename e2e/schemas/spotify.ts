@@ -69,6 +69,18 @@ export const addTracksRequestSchema = z.object({
   uris: z.array(z.string()).min(1),
 });
 
+/** PKCE token exchange form body (application/x-www-form-urlencoded). */
+export const tokenExchangeFormSchema = z.object({
+  grant_type: z.literal('authorization_code'),
+  code: z.string().min(1),
+  code_verifier: z.string().optional(),
+  redirect_uri: z.string().optional(),
+  client_id: z.string().optional(),
+});
+
+/** Search query string from GET /v1/search `q` param. */
+export const searchQuerySchema = z.string().min(1);
+
 export type SpotifySearchResponse = z.infer<typeof spotifySearchResponseSchema>;
 export type SpotifyUserResponse = z.infer<typeof spotifyUserResponseSchema>;
 export type SpotifyPlaylistResponse = z.infer<typeof spotifyPlaylistResponseSchema>;
@@ -76,3 +88,4 @@ export type SpotifyTokenResponse = z.infer<typeof spotifyTokenResponseSchema>;
 export type Track = z.infer<typeof trackSchema>;
 export type CreatePlaylistRequest = z.infer<typeof createPlaylistRequestSchema>;
 export type AddTracksRequest = z.infer<typeof addTracksRequestSchema>;
+export type TokenExchangeForm = z.infer<typeof tokenExchangeFormSchema>;
