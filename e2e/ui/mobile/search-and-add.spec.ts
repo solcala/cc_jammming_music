@@ -1,14 +1,21 @@
 import { test, expect } from '../../fixtures/test';
 import { mockTracks } from '../../fixtures/spotify-mocks';
-import { hasHorizontalOverflow, searchAndAddFirstTrack } from '../../fixtures/helpers';
+import { hasHorizontalOverflow } from '../../fixtures/helpers';
+import { AppPage } from '../../pages';
 
 test.describe('Mobile search and add', () => {
   test('searches for tracks and adds one to the playlist', async ({ page }) => {
-    await searchAndAddFirstTrack(page);
+    const app = new AppPage(page);
+    const searchRequest = page.waitForRequest('**/api.spotify.com/v1/search*');
 
-    const playlist = page.getByTestId('playlist-section');
-    await expect(playlist.getByTestId('track-name-track-1')).toHaveText(mockTracks[0].name);
-    await expect(playlist.getByTestId('track-remove-track-1')).toBeVisible();
+    await app.searchAndAddTrack();
+    const request = await searchRequest;
+
+    expect(new URL(request.url()).searchParams.get('q')).toBe('test song');
+    await expect(app.playlist.trackNameInPlaylist('track-1')).toHaveText(
+      mockTracks[0].name,
+    );
+    await expect(app.playlist.trackRemoveButton('track-1')).toBeVisible();
     expect(await hasHorizontalOverflow(page)).toBe(false);
   });
 });

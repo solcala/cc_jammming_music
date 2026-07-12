@@ -12,4 +12,8 @@ export class BasePage {
   playlistSection(): Locator {
     return this.page.getByTestId(selectors.playlistSection);
   }
+
+  appTitle(): Locator {
+    return this.page.getByTestId(selectors.appTitle);
+  }
 }

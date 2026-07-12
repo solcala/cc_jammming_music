@@ -1,16 +1,19 @@
 import { test, expect } from '../../fixtures/test';
-import { hasHorizontalOverflow, searchAndAddFirstTrack } from '../../fixtures/helpers';
+import { hasHorizontalOverflow } from '../../fixtures/helpers';
+import { AppPage } from '../../pages';
 
 test.describe('Mobile remove track', () => {
-  test('removes a track and disables save when playlist is empty', async ({ page }) => {
-    await searchAndAddFirstTrack(page);
-    await page.getByTestId('playlist-title-input').fill('Solo Track');
+  test('removes a track and disables save when playlist is empty', async ({
+    page,
+  }) => {
+    const app = new AppPage(page);
+    await app.searchAndAddTrack();
+    await app.playlist.fillTitle('Solo Track');
 
-    const playlist = page.getByTestId('playlist-section');
-    await playlist.getByTestId('track-remove-track-1').click();
+    await app.playlist.clickRemoveTrack('track-1');
 
-    await expect(playlist.getByTestId('track-remove-track-1')).not.toBeVisible();
-    await expect(page.getByTestId('save-playlist-button')).toBeDisabled();
+    await expect(app.playlist.trackRemoveButton('track-1')).not.toBeVisible();
+    await expect(app.playlist.saveButton()).toBeDisabled();
     expect(await hasHorizontalOverflow(page)).toBe(false);
   });
 });

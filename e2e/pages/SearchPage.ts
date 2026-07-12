@@ -8,6 +8,10 @@ export class SearchPage extends BasePage {
     return this.page.getByTestId(selectors.searchForm);
   }
 
+  searchLabel(): Locator {
+    return this.page.getByTestId(selectors.searchLabel);
+  }
+
   searchInput(): Locator {
     return this.page.getByTestId(selectors.searchInput);
   }
@@ -26,6 +30,10 @@ export class SearchPage extends BasePage {
 
   searchApiError(): Locator {
     return this.page.getByTestId(selectors.searchApiError);
+  }
+
+  resultsHeading(): Locator {
+    return this.page.getByTestId(selectors.resultsHeading);
   }
 
   trackItem(id: string): Locator {
