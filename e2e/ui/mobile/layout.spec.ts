@@ -1,16 +1,22 @@
 import { test, expect } from '../../fixtures/test';
-import {
-  expectMatchingControlWidths,
-  expectNoHorizontalOverflow,
-} from '../../fixtures/helpers';
+import { hasHorizontalOverflow } from '../../fixtures/helpers';
+import { AppPage, SearchPage } from '../../pages';
 
 test.describe('Mobile layout', () => {
   test('loads without horizontal overflow', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Jamming' })).toBeVisible();
-    await expectNoHorizontalOverflow(page);
+    const app = new AppPage(page);
+
+    await expect(app.appTitle()).toBeVisible();
+    expect(await hasHorizontalOverflow(page)).toBe(false);
   });
 
   test('aligns search button width with search input', async ({ page }) => {
-    await expectMatchingControlWidths(page, 'search-by-input', 'search-button');
+    const search = new SearchPage(page);
+    const firstBox = await search.searchInput().boundingBox();
+    const secondBox = await search.searchButton().boundingBox();
+
+    expect(firstBox).not.toBeNull();
+    expect(secondBox).not.toBeNull();
+    expect(secondBox!.width).toBeCloseTo(firstBox!.width, 0);
   });
 });

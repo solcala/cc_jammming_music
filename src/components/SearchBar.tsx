@@ -39,7 +39,11 @@ function SearchBar({
       onSubmit={handleSubmit}
       data-testid="search-form"
     >
-      <label htmlFor="search-by-input" className={styles.searchLabel}>
+      <label
+        htmlFor="search-by-input"
+        className={styles.searchLabel}
+        data-testid="search-label"
+      >
         Search by song title
       </label>
       <input

@@ -19,7 +19,9 @@ function SearchResults({
 
   return (
     <div className={styles.searchResults}>
-      <h2 className={styles.panelTitle}>Results</h2>
+      <h2 className={styles.panelTitle} data-testid="results-heading">
+        Results
+      </h2>
       <div className={styles.resultsBody}>
         {showEmptyState ? (
           <p className={styles.emptyMessage} data-testid="search-empty-message">

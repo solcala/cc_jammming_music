@@ -3,53 +3,64 @@ import { test } from '../fixtures/test';
 import { bootstrapSpotifyAuth } from '../fixtures/auth';
 import { mockSpotifyApi } from '../fixtures/mock-spotify-api';
 import { mockTracks } from '../fixtures/spotify-mocks';
+import {
+  trackUrlHits,
+  waitForSearchRequest,
+} from '../fixtures/request-tracking';
+import { SearchPage } from '../pages';
+import { parseSearchQuery } from '../schemas/validate';
 
 test.describe('Spotify search API', () => {
-  test('requests search with query and renders mapped tracks', async ({ page }) => {
-    const searchRequest = page.waitForRequest('**/api.spotify.com/v1/search*');
+  test('requests search with query and renders mapped tracks', async ({
+    page,
+  }) => {
+    const search = new SearchPage(page);
+    const searchRequest = waitForSearchRequest(page);
 
-    await page.getByTestId('search-by-input').fill('test song');
-    await page.getByTestId('search-button').click();
+    await search.fillAndSearch('test song');
 
     const request = await searchRequest;
-    expect(request.method()).toBe('GET');
-    expect(request.url()).toContain('/v1/search');
-    expect(request.url()).toContain('type=track');
-    expect(request.url()).toContain('q=test');
+    const url = new URL(request.url());
 
-    await expect(page.getByTestId('track-name-track-1')).toHaveText(mockTracks[0].name);
-    await expect(page.getByTestId('track-artist-track-1')).toHaveText(
-      mockTracks[0].artists[0].name
+    expect(request.method()).toBe('GET');
+    expect(url.pathname).toContain('/v1/search');
+    expect(url.searchParams.get('type')).toBe('track');
+    expect(parseSearchQuery(url.searchParams.get('q'))).toBe('test song');
+
+    await expect(search.trackName('track-1')).toHaveText(mockTracks[0].name);
+    await expect(search.trackArtist('track-1')).toHaveText(
+      mockTracks[0].artists[0].name,
     );
-    await expect(page.getByTestId('track-name-track-2')).toHaveText(mockTracks[1].name);
+    await expect(search.trackName('track-2')).toHaveText(mockTracks[1].name);
   });
 
   test('does not call search API when query is empty', async ({ page }) => {
-    let searchCalled = false;
+    const search = new SearchPage(page);
+    const searchHits = trackUrlHits(page, '/v1/search');
 
-    page.on('request', (request) => {
-      if (request.url().includes('/v1/search')) {
-        searchCalled = true;
-      }
-    });
+    await search.clickSearch();
 
-    await page.getByTestId('search-button').click();
-
-    expect(searchCalled).toBe(false);
-    await expect(page.getByTestId('search-error')).toHaveText('Please enter a song title');
+    expect(searchHits.count()).toBe(0);
+    await expect(search.searchError()).toHaveText('Please enter a song title');
   });
 });
 
 base.describe('Spotify search API errors', () => {
-  base('returns no tracks when search responds with 401', async ({ page, baseURL }) => {
+  base('returns no tracks when search responds with 401', async ({
+    page,
+    baseURL,
+  }) => {
+    // [QA_AUDIT_REQUIRED]: Mocking search 401. Cannot force Spotify auth failures in CI.
     await mockSpotifyApi(page, { searchStatus: 401 });
     await bootstrapSpotifyAuth(page, baseURL!);
+    const search = new SearchPage(page);
+    const searchRequest = waitForSearchRequest(page);
 
-    await page.getByTestId('search-by-input').fill('test song');
-    await page.getByTestId('search-button').click();
+    await search.fillAndSearch('test song');
+    await searchRequest;
 
-    await expect(page.getByTestId('track-item-track-1')).not.toBeVisible();
-    await expect(page.getByTestId('track-item-track-2')).not.toBeVisible();
-    await expect(page.getByTestId('search-empty-message')).toHaveText('No results found');
+    await expect(search.trackItem('track-1')).not.toBeVisible();
+    await expect(search.trackItem('track-2')).not.toBeVisible();
+    await expect(search.searchEmptyMessage()).toHaveText('No results found');
   });
 });

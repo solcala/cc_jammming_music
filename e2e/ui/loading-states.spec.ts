@@ -1,38 +1,42 @@
 import { test, expect } from '../fixtures/test';
 import { mockDelayedSave, mockDelayedSearch } from '../fixtures/mock-spotify-api';
-import { searchAndAddFirstTrack } from '../fixtures/helpers';
+import { AppPage, SearchPage } from '../pages';
 
 test.describe('Loading states', () => {
   test('shows Searching... while search is in progress', async ({ page }) => {
+    // [QA_AUDIT_REQUIRED]: Artificial delay gate for loading UI. Cannot control Spotify latency in CI.
     const { release } = await mockDelayedSearch(page);
+    const search = new SearchPage(page);
 
-    await page.getByTestId('search-by-input').fill('test song');
-    await page.getByTestId('search-button').click();
+    await search.fillSearch('test song');
+    await search.clickSearch();
 
-    await expect(page.getByTestId('search-button')).toHaveText('Searching...');
-    await expect(page.getByTestId('search-button')).toBeDisabled();
+    await expect(search.searchButton()).toHaveText('Searching...');
+    await expect(search.searchButton()).toBeDisabled();
 
     release();
-    await expect(page.getByTestId('track-item-track-1')).toBeVisible();
-    await expect(page.getByTestId('search-button')).toHaveText('Search');
-    await expect(page.getByTestId('search-button')).toBeEnabled();
+    await expect(search.trackItem('track-1')).toBeVisible();
+    await expect(search.searchButton()).toHaveText('Search');
+    await expect(search.searchButton()).toBeEnabled();
   });
 
   test('shows Saving... while save is in progress', async ({ page }) => {
+    // [QA_AUDIT_REQUIRED]: Artificial delay on save for loading UI. Cannot control Spotify latency in CI.
     const { release, arm } = await mockDelayedSave(page);
+    const app = new AppPage(page);
 
-    await searchAndAddFirstTrack(page);
-    await page.getByTestId('playlist-title-input').fill('Weekend Vibes');
+    await app.searchAndAddTrack();
+    await app.playlist.fillTitle('Weekend Vibes');
 
     arm();
-    await page.getByTestId('save-playlist-button').click();
+    await app.playlist.clickSave();
 
-    await expect(page.getByTestId('save-playlist-button')).toHaveText('Saving...');
-    await expect(page.getByTestId('save-playlist-button')).toBeDisabled();
+    await expect(app.playlist.saveButton()).toHaveText('Saving...');
+    await expect(app.playlist.saveButton()).toBeDisabled();
 
     release();
-    await expect(page.getByTestId('playlist-message')).toHaveText('Playlist created');
-    await expect(page.getByTestId('save-playlist-button')).toHaveText('Save to Spotify');
-    await expect(page.getByTestId('save-playlist-button')).toBeDisabled();
+    await expect(app.playlist.message()).toHaveText('Playlist created');
+    await expect(app.playlist.saveButton()).toHaveText('Save to Spotify');
+    await expect(app.playlist.saveButton()).toBeDisabled();
   });
 });

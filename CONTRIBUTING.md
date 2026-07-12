@@ -76,8 +76,32 @@ Open [http://127.0.0.1:3000/cc_jammming_music/](http://127.0.0.1:3000/cc_jammmin
 ## Coding notes
 
 - Preserve existing `data-testid` and accessibility attributes used by Playwright.
-- E2E specs stay declarative: put branching/helpers in `e2e/fixtures/`, not inside tests.
+- E2E specs stay declarative: put branching/helpers in `e2e/fixtures/` (and later `e2e/pages/`), not inside tests.
 - Do not commit secrets (`.env`, webhook URLs, client secrets). `.env` is gitignored.
+
+## Testing standards
+
+Quality rules for this repo live in:
+
+- [`.cursor/rules/qa-testing-standards.mdc`](.cursor/rules/qa-testing-standards.mdc) — API contracts, Playwright POM, clean tests, mock audit comments
+- [`.cursor/rules/e2e-tests.mdc`](.cursor/rules/e2e-tests.mdc) — Playwright-specific style
+
+**Highlights for contributors:**
+
+- Prefer **`data-testid`** selectors in E2E.
+- **Assertions belong in `*.spec.ts`**, not in Page Objects.
+- **No `if` / loops / `waitForTimeout` in specs** — use fixtures and Playwright auto-waiting (`waitForRequest`, `toBeVisible`).
+- After UI actions that call Spotify, **double-verify** the network request and the UI outcome.
+- Default Spotify mocks are fine for CI. For synthetic 401/500/delay scenarios, add `// [QA_AUDIT_REQUIRED]: ...` with a short justification.
+- There is **no app database**; “reconciliation” means Spotify API contract + UI state (Zod schemas land in a later batch).
+
+Before opening a PR that touches tests or app behavior, run:
+
+```bash
+npm run lint
+npm run typecheck
+npm run test:all
+```
 
 ## Dependabot
 

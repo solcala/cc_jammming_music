@@ -1,30 +1,52 @@
 import { test, expect } from '../fixtures/test';
-import { mockTracks } from '../fixtures/spotify-mocks';
-import { searchAndAddFirstTrack, savePlaylist, searchTracks } from '../fixtures/helpers';
+import { mockTracks, mockPlaylist, mockUser } from '../fixtures/spotify-mocks';
+import { AppPage } from '../pages';
 
 test.describe('Playlist message', () => {
   test('clears success message when playlist title changes', async ({ page }) => {
-    await searchAndAddFirstTrack(page);
-    await savePlaylist(page, 'Weekend Vibes');
+    const app = new AppPage(page);
+    await app.searchAndAddTrack();
 
-    await expect(page.getByTestId('playlist-message')).toHaveText('Playlist created');
+    const meRequest = page.waitForRequest('**/api.spotify.com/v1/me');
+    const createPlaylistRequest = page.waitForRequest(
+      (request) =>
+        request.method() === 'POST' &&
+        request.url().includes(`/v1/users/${mockUser.id}/playlists`) &&
+        !request.url().includes('/tracks'),
+    );
+    const addTracksRequest = page.waitForRequest(
+      (request) =>
+        request.method() === 'POST' &&
+        request.url().includes(`/playlists/${mockPlaylist.id}/tracks`),
+    );
 
-    await page.getByTestId('playlist-title-input').fill('New Playlist');
-    await expect(page.getByTestId('playlist-message')).toHaveText('');
+    await app.playlist.savePlaylist('Weekend Vibes');
+    await meRequest;
+    await createPlaylistRequest;
+    await addTracksRequest;
+
+    await expect(app.playlist.message()).toHaveText('Playlist created');
+
+    await app.playlist.fillTitle('New Playlist');
+    await expect(app.playlist.message()).toHaveText('');
   });
-});
 
-  test('clears duplicate track message when a different track is added', async ({ page }) => {
-    await searchTracks(page);
-    await page.getByTestId('track-add-track-1').click();
-    await page.getByTestId('track-add-track-1').click();
+  test('clears duplicate track message when a different track is added', async ({
+    page,
+  }) => {
+    const app = new AppPage(page);
 
-    await expect(page.getByTestId('playlist-message')).toHaveText('This song is in the playlist.');
+    await app.search.fillAndSearch('test song');
+    await app.search.clickAddTrack('track-1');
+    await app.search.clickAddTrack('track-1');
 
-    await page.getByTestId('track-add-track-2').click();
+    await expect(app.playlist.message()).toHaveText('This song is in the playlist.');
 
-    await expect(page.getByTestId('playlist-message')).toHaveText('');
-    await expect(page.getByTestId('playlist-section').getByTestId('track-name-track-2')).toHaveText(
-      mockTracks[1].name
+    await app.search.clickAddTrack('track-2');
+
+    await expect(app.playlist.message()).toHaveText('');
+    await expect(app.playlist.trackNameInPlaylist('track-2')).toHaveText(
+      mockTracks[1].name,
     );
   });
+});

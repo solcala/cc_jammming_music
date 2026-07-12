@@ -1,6 +1,7 @@
 import { webcrypto } from 'crypto';
 import { TextEncoder } from 'util';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi, type MockedFunction } from 'vitest';
+import { z } from 'zod';
 import type SpotifyType from './Spotify';
 import { PKCE_CODE_VERIFIER_STORAGE_KEY, SPOTIFY_TOKEN_URL } from './pkce';
 
@@ -11,12 +12,21 @@ const MOCK_CODE_VERIFIER = 'test-pkce-verifier-abcdefghijklmnopqrstuvwxyz123456'
 
 const mockFetch = vi.fn() as MockedFunction<typeof fetch>;
 
-const mockTokenResponse = {
+/** Keep unit fixtures aligned with E2E Spotify token contract. */
+const spotifyTokenResponseSchema = z.object({
+  access_token: z.string(),
+  token_type: z.string(),
+  scope: z.string(),
+  expires_in: z.number(),
+  refresh_token: z.string().optional(),
+});
+
+const mockTokenResponse = spotifyTokenResponseSchema.parse({
   access_token: MOCK_ACCESS_TOKEN,
   token_type: 'Bearer',
   scope: 'playlist-modify-public',
   expires_in: 3600,
-};
+});
 
 function mockSessionStorage() {
   const store = new Map<string, string>();
