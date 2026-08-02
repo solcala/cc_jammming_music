@@ -110,7 +110,8 @@ Dependabot opens weekly PRs for npm and GitHub Actions (see [`.github/dependabot
 **Merge tips:**
 
 - Prefer small, focused Dependabot PRs.
-- Grouped `development-dependencies` excludes toolchain packages (`eslint`, `typescript`, etc.) so those can be upgraded deliberately.
+- Groups are limited to patch/minor; majors for React, Vite, Vitest, ESLint, TypeScript, and related packages are ignored for intentional upgrade PRs.
+- Merge one npm Dependabot PR at a time; wait for rebase + green CI before the next.
 - Avoid mega-bumps that combine major ESLint + TypeScript + Vite upgrades in one PR.
 - After any dependency bump, run `npm run test:all` and confirm CI is green.
 
