@@ -5,25 +5,79 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    # Keep weekly PRs to patch/minor only. Majors for React / Vite / Vitest /
+    # ESLint / TypeScript are intentional upgrade projects (not Dependabot drive-bys).
     groups:
       development-dependencies:
         dependency-type: development
+        update-types:
+          - minor
+          - patch
         patterns:
           - '*'
         exclude-patterns:
           - 'eslint'
           - 'eslint-config-react-app'
+          - '@eslint/js'
           - 'typescript'
           - '@typescript-eslint/*'
           - 'typescript-eslint'
+          - 'vite'
+          - '@vitejs/*'
+          - 'vitest'
+          - '@vitest/*'
+          - 'jsdom'
+          - '@types/node'
+          - '@types/react'
+          - '@types/react-dom'
       production-dependencies:
         dependency-type: production
+        update-types:
+          - minor
+          - patch
         patterns:
           - '*'
+        exclude-patterns:
+          - 'react'
+          - 'react-dom'
+          - 'web-vitals'
+    ignore:
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@eslint/js'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'typescript-eslint'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@typescript-eslint/*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'vite'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@vitejs/*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'vitest'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@vitest/*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'jsdom'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/react'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/react-dom'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'react'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'react-dom'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'web-vitals'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3

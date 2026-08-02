@@ -227,7 +227,8 @@ This runs `test:coverage`, then `build:e2e`, then `test:e2e:serve`.
 **Merge tips:**
 
 - Prefer **small, focused** Dependabot PRs over large grouped bumps.
-- The grouped `development-dependencies` PR excludes toolchain packages such as `eslint` and `typescript` so they can be upgraded deliberately.
+- Groups are limited to **patch/minor** only. Majors for React, Vite, Vitest, ESLint, TypeScript, and related packages are ignored so they land as intentional upgrade PRs.
+- Merge **one npm Dependabot PR at a time**; wait for Dependabot’s rebase and green CI before the next (all touch `package-lock.json`).
 - Do **not** merge mega-bumps that combine major ESLint + TypeScript + Vite upgrades in one PR — upgrade them one at a time and run `npm run test:all` after each.
 
 ## Deployment
